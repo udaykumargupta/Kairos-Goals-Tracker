@@ -3,3 +3,15 @@
 
 # Local editor / tooling config
 .claude/
+.idea/
+*.iml
+
+# Secrets / env
+.env
+
+# Java / Maven build output
+backend/target/
+target/
+
+# Logs
+*.log

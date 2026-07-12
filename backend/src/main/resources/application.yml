@@ -1,0 +1,33 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: kairos
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/kairos}
+    username: ${DB_USERNAME:kairos}
+    password: ${DB_PASSWORD:kairos}
+  jpa:
+    hibernate:
+      # Auto-creates/updates tables from the entities. Fine for a personal app;
+      # switch to Flyway/Liquibase migrations if this ever goes multi-user/production.
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+kairos:
+  google:
+    # OAuth 2.0 Web Client ID from Google Cloud Console. REQUIRED for login.
+    client-id: ${GOOGLE_CLIENT_ID:PASTE_YOUR_GOOGLE_CLIENT_ID_HERE}
+  jwt:
+    # MUST be at least 32 characters. Override in production via the JWT_SECRET env var.
+    secret: ${JWT_SECRET:kairos-dev-secret-change-me-please-0123456789}
+    # 7 days, in milliseconds.
+    expiration-ms: ${JWT_EXPIRATION_MS:604800000}
+
+logging:
+  level:
+    org.hibernate.SQL: warn

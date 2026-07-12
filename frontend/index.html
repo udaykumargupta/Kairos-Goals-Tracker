@@ -290,7 +290,46 @@
 
   .footer-note { text-align: center; color: var(--muted); font-size: 12px; margin-top: 26px; }
   .footer-note a { color: var(--accent); text-decoration: none; cursor: pointer; }
+
+  /* Auth gate */
+  .auth-gate {
+    position: fixed; inset: 0; z-index: 100; display: none;
+    align-items: center; justify-content: center; padding: 24px; background: var(--bg);
+  }
+  .auth-gate.show { display: flex; }
+  .auth-card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 20px;
+    box-shadow: var(--shadow); padding: 40px 36px; max-width: 400px; width: 100%; text-align: center;
+  }
+  .auth-card .logo-lg {
+    width: 62px; height: 62px; border-radius: 17px; margin: 0 auto 18px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: grid; place-items: center; font-size: 32px; box-shadow: var(--shadow);
+  }
+  .auth-card h2 { margin: 0 0 6px; font-size: 25px; letter-spacing: -.4px; }
+  .auth-card p { margin: 0 0 26px; color: var(--muted); font-size: 14px; line-height: 1.55; }
+  #gsiButton { display: flex; justify-content: center; min-height: 44px; }
+  .gsi-missing { color: var(--danger); font-size: 12.5px; line-height: 1.6; border: 1px solid var(--line); border-radius: 12px; padding: 14px; text-align: left; }
+  .gsi-missing code { background: var(--panel-2); padding: 1px 5px; border-radius: 5px; }
+  .auth-foot { margin-top: 22px; font-size: 12px; color: var(--muted); }
+
+  /* User chip + sync badge */
+  .sync-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .sync-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); transition: background .2s; }
+  .sync-badge.saved .dot { background: var(--accent-2); }
+  .sync-badge.saving .dot { background: var(--today-ring); }
+  .sync-badge.offline .dot { background: var(--danger); }
+  .user-chip {
+    display: flex; align-items: center; gap: 8px; padding: 4px 4px 4px 10px;
+    border: 1px solid var(--line); border-radius: 99px; background: var(--panel); box-shadow: var(--shadow);
+  }
+  .user-chip img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+  .user-chip .u-name { font-size: 13px; font-weight: 600; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .user-chip .u-signout { border: none; background: var(--panel-2); color: var(--muted); border-radius: 99px; padding: 6px 11px; font-size: 12px; cursor: pointer; transition: .15s; }
+  .user-chip .u-signout:hover { color: var(--danger); }
+  @media (max-width: 620px) { .user-chip .u-name { display: none; } }
 </style>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 <div class="app">
@@ -303,6 +342,12 @@
       </div>
     </div>
     <div class="top-actions">
+      <div class="sync-badge" id="syncBadge" style="display:none"><span class="dot"></span><span id="syncText">Saved</span></div>
+      <div class="user-chip" id="userChip" style="display:none">
+        <img id="userAvatar" alt="" referrerpolicy="no-referrer" />
+        <span class="u-name" id="userName"></span>
+        <button class="u-signout" id="signOutBtn">Sign out</button>
+      </div>
       <div class="settings-wrap">
         <button class="icon-btn" id="settingsBtn" title="Completion settings">⚙️</button>
         <div class="popover" id="settingsPop">
@@ -398,6 +443,17 @@
   </p>
 </div>
 
+<!-- Sign-in gate -->
+<div class="auth-gate" id="authGate">
+  <div class="auth-card">
+    <div class="logo-lg">🎯</div>
+    <h2>Kairos</h2>
+    <p>Sign in with Google to save your goals to your account and sync them across your devices.</p>
+    <div id="gsiButton"></div>
+    <div class="auth-foot">Your goals are stored privately against your Google account.</div>
+  </div>
+</div>
+
 <script>
 (function () {
   "use strict";
@@ -426,19 +482,28 @@
   }
   function saveSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }
 
-  function load() {
-    let d = { daily: {}, monthly: {}, yearly: {}, custom: [] };
-    try {
-      const raw = localStorage.getItem(STORE_KEY);
-      if (raw) d = Object.assign(d, JSON.parse(raw));
-    } catch (e) {}
+  function emptyData() { return { daily: {}, monthly: {}, yearly: {}, custom: [] }; }
+  function normalize(raw) {
+    let d = emptyData();
+    if (raw && typeof raw === "object") d = Object.assign(d, raw);
     if (!d.daily) d.daily = {};
     if (!d.monthly) d.monthly = {};
     if (!d.yearly) d.yearly = {};
     if (!Array.isArray(d.custom)) d.custom = [];
     return d;
   }
-  function save() { localStorage.setItem(STORE_KEY, JSON.stringify(data)); }
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (raw) return normalize(JSON.parse(raw));
+    } catch (e) {}
+    return emptyData();
+  }
+  let cacheKey = STORE_KEY;                      // becomes "kairos_data_<userId>" after sign-in
+  function save() {
+    localStorage.setItem(cacheKey, JSON.stringify(data));
+    scheduleServerPush();                        // hoisted; no-op until signed in
+  }
   function uid() { return Date.now() + "" + Math.random().toString(36).slice(2, 6); }
 
   // ---------- Keys ----------
@@ -900,7 +965,203 @@
 
   // ---------- Render all ----------
   function renderAll() { renderCalendar(); renderGoals(); }
+
+  // ============================================================
+  //  Authentication (Google Sign-In) + server sync
+  // ============================================================
+  const JWT_KEY = "kairos_jwt";
+  const MIGRATED_KEY = "kairos_legacy_migrated";
+  let authToken = localStorage.getItem(JWT_KEY) || null;
+  let currentUser = null;
+  let googleClientId = null;
+
+  const authGate   = document.getElementById("authGate");
+  const gsiButton  = document.getElementById("gsiButton");
+  const userChip   = document.getElementById("userChip");
+  const userAvatar = document.getElementById("userAvatar");
+  const userName   = document.getElementById("userName");
+  const signOutBtn = document.getElementById("signOutBtn");
+  const syncBadge  = document.getElementById("syncBadge");
+  const syncText   = document.getElementById("syncText");
+
+  function setSync(state, label) {
+    syncBadge.style.display = authToken ? "inline-flex" : "none";
+    syncBadge.className = "sync-badge " + state;
+    syncText.textContent = label;
+  }
+  function safeParse(str) { try { return str ? JSON.parse(str) : null; } catch (e) { return null; } }
+  function decodeJwt(token) {
+    try {
+      let b64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+      b64 += "===".slice((b64.length + 3) % 4);
+      return JSON.parse(decodeURIComponent(escape(atob(b64))));
+    } catch (e) { return null; }
+  }
+
+  async function api(method, path, body) {
+    const headers = { "Content-Type": "application/json" };
+    if (authToken) headers["Authorization"] = "Bearer " + authToken;
+    const res = await fetch(path, { method, headers, body: body !== undefined ? JSON.stringify(body) : undefined });
+    if (res.status === 401) { signOut(); throw new Error("unauthorized"); }
+    return res;
+  }
+
+  // --- debounced server push ---
+  let pushTimer = null, pushPending = false;
+  function scheduleServerPush() {
+    if (!authToken) return;
+    pushPending = true;
+    setSync("saving", "Saving…");
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(pushNow, 700);
+  }
+  async function pushNow() {
+    if (!authToken || !pushPending) return;
+    pushPending = false;
+    try {
+      await api("PUT", "/api/state", data);
+      setSync("saved", "Saved");
+    } catch (e) {
+      pushPending = true;                          // retry on next change
+      setSync("offline", "Offline — will retry");
+    }
+  }
+  window.addEventListener("beforeunload", () => {
+    if (authToken && pushPending) {
+      try {
+        fetch("/api/state", {
+          method: "PUT", keepalive: true,
+          headers: { "Content-Type": "application/json", "Authorization": "Bearer " + authToken },
+          body: JSON.stringify(data)
+        });
+      } catch (e) {}
+    }
+  });
+
+  // --- pull from server, with one-time migration of pre-login local data ---
+  async function syncFromServer(userId) {
+    cacheKey = "kairos_data_" + userId;
+    try {
+      const res = await api("GET", "/api/state");
+      const body = await res.json();
+      if (body && body.data) {
+        data = normalize(body.data);
+      } else {
+        const cached = safeParse(localStorage.getItem(cacheKey));
+        const legacy = safeParse(localStorage.getItem(STORE_KEY));
+        if (cached) {
+          data = normalize(cached);
+        } else if (legacy && !localStorage.getItem(MIGRATED_KEY)) {
+          data = normalize(legacy);                // carry over goals created before login existed
+          localStorage.setItem(MIGRATED_KEY, String(userId));
+        } else {
+          data = emptyData();
+        }
+        try { await api("PUT", "/api/state", data); } catch (e) {}
+      }
+      setSync("saved", "Saved");
+    } catch (e) {
+      const cached = safeParse(localStorage.getItem(cacheKey)) || safeParse(localStorage.getItem(STORE_KEY));
+      data = cached ? normalize(cached) : emptyData();
+      setSync("offline", "Offline");
+    }
+    localStorage.setItem(cacheKey, JSON.stringify(data));
+    renderAll();
+  }
+
+  // --- session UI ---
+  function showUser(user) {
+    currentUser = user;
+    if (user.picture) { userAvatar.src = user.picture; userAvatar.style.display = ""; }
+    else userAvatar.style.display = "none";
+    userName.textContent = user.name || user.email || "Account";
+    userChip.style.display = "flex";
+  }
+  function hideGate() { authGate.classList.remove("show"); }
+  function showGate() {
+    authGate.classList.add("show");
+    userChip.style.display = "none";
+    syncBadge.style.display = "none";
+    renderGoogleButton();
+  }
+  function signOut() {
+    authToken = null; currentUser = null;
+    localStorage.removeItem(JWT_KEY);
+    cacheKey = STORE_KEY;
+    if (window.google && google.accounts && google.accounts.id) {
+      try { google.accounts.id.disableAutoSelect(); } catch (e) {}
+    }
+    showGate();
+  }
+  signOutBtn.addEventListener("click", signOut);
+
+  // --- Google Identity Services ---
+  function whenGoogleReady(cb) {
+    if (window.google && google.accounts && google.accounts.id) return cb();
+    const t = setInterval(() => {
+      if (window.google && google.accounts && google.accounts.id) { clearInterval(t); cb(); }
+    }, 120);
+  }
+  function renderGoogleButton() {
+    if (!googleClientId) {
+      gsiButton.innerHTML = '<div class="gsi-missing">⚠️ Google sign-in isn’t configured yet.<br>' +
+        'Set <code>kairos.google.client-id</code> (env <code>GOOGLE_CLIENT_ID</code>) on the backend and restart.</div>';
+      return;
+    }
+    whenGoogleReady(() => {
+      google.accounts.id.initialize({ client_id: googleClientId, callback: onCredential });
+      gsiButton.innerHTML = "";
+      google.accounts.id.renderButton(gsiButton, { theme: "filled_blue", size: "large", shape: "pill", text: "signin_with", width: 280 });
+    });
+  }
+  async function onCredential(response) {
+    try {
+      const res = await fetch("/api/auth/google", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken: response.credential })
+      });
+      if (!res.ok) throw new Error("login failed");
+      const body = await res.json();               // { token, user }
+      authToken = body.token;
+      localStorage.setItem(JWT_KEY, authToken);
+      showUser(body.user);
+      hideGate();
+      const claims = decodeJwt(authToken);
+      await syncFromServer(claims ? claims.sub : "me");
+    } catch (e) {
+      gsiButton.insertAdjacentHTML("beforeend",
+        '<div class="gsi-missing" style="margin-top:12px">Sign-in failed. Please try again.</div>');
+    }
+  }
+
+  async function initAuth() {
+    try {
+      const r = await fetch("/api/public/config");
+      if (r.ok) {
+        const cfg = await r.json();
+        if (cfg.googleClientId && cfg.googleClientId.indexOf("PASTE_") !== 0) googleClientId = cfg.googleClientId;
+      }
+    } catch (e) {}
+
+    if (authToken) {
+      const claims = decodeJwt(authToken);
+      const notExpired = claims && (!claims.exp || claims.exp * 1000 > Date.now());
+      if (notExpired) {
+        showUser({ email: claims.email, name: claims.name, picture: claims.picture });
+        hideGate();
+        await syncFromServer(claims.sub);
+        return;
+      }
+      localStorage.removeItem(JWT_KEY);
+      authToken = null;
+    }
+    showGate();
+  }
+
+  // Initial paint (empty/local) sits behind the gate until sign-in completes.
   renderAll();
+  initAuth();
 })();
 </script>
 </body>

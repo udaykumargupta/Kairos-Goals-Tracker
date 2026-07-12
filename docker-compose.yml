@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:16
+    container_name: kairos-postgres
+    environment:
+      POSTGRES_DB: kairos
+      POSTGRES_USER: kairos
+      POSTGRES_PASSWORD: kairos
+    ports:
+      - "5432:5432"
+    volumes:
+      - kairos_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kairos -d kairos"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  kairos_pgdata:
