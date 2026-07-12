@@ -142,9 +142,31 @@
     body { overflow: auto; }
     .app { height: auto; min-height: 100vh; display: block; }
     .layout { display: flex; flex-direction: column; }
-    .cal-col { overflow-y: visible; max-height: none; }
+    /* In the mobile flex-column, force full width so the column doesn't shrink to
+       its content (which made the width jump with each random quote). */
+    .cal-col { overflow-y: visible; max-height: none; align-self: stretch; width: 100%; }
     .goals { max-height: 48vh; }
     #timelineList { max-height: 60vh; }
+
+    /* Settings menu → full-width scrollable sheet, so it can't get cut off */
+    .popover {
+      position: fixed; top: 60px; left: 12px; right: 12px; width: auto;
+      max-height: calc(100vh - 76px); overflow-y: auto; z-index: 120;
+    }
+    /* LinkedIn sits at the end of the page (scrolls with content) instead of being pinned */
+    .linkedin-link {
+      position: static; display: flex; width: fit-content;
+      margin: 8px 18px 24px auto;
+    }
+  }
+
+  /* Touch devices (no hovering pointer): the calendar bookmark star is indicator-only,
+     so tapping a small date cell always SELECTS it instead of toggling a bookmark.
+     Bookmark a day with the ★ next to the date in the day panel. Desktop is unaffected
+     (it keeps hover-to-reveal + click-to-bookmark). */
+  @media (hover: none) {
+    .day-bookmark { pointer-events: none; }
+    .goal-del { opacity: .5; }   /* also reveal delete on touch, since there's no hover */
   }
 
   /* Calendar */
