@@ -6,6 +6,6 @@ import com.kairos.user.User;
 public record UserDto(String email, String name, String picture) {
 
     public static UserDto from(User user) {
-        return new UserDto(user.getEmail(), user.getName(), user.getPicture());
+        return new UserDto(user.getEmail(), user.effectiveName(), user.effectivePicture());
     }
 }

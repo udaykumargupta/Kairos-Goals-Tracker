@@ -54,20 +54,21 @@
   }
 
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
+  html, body { margin: 0; padding: 0; height: 100%; }
   body {
     background: var(--bg);
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     line-height: 1.45;
+    overflow: hidden;                 /* the page itself never scrolls; regions scroll internally */
   }
 
-  .app { max-width: 1120px; margin: 0 auto; padding: 28px 20px 60px; }
+  .app { max-width: 1120px; margin: 0 auto; padding: 22px 20px 18px; height: 100vh; display: flex; flex-direction: column; }
 
   header.top {
     display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    margin-bottom: 18px; flex-wrap: wrap; gap: 12px; flex: none;
   }
   .brand { display: flex; align-items: center; gap: 12px; }
   .brand .logo {
@@ -115,12 +116,35 @@
   .pop-help .tick { color: var(--accent-2); font-weight: 800; }
   .pop-help .cross { color: var(--danger); font-weight: 800; }
 
-  .layout { display: grid; grid-template-columns: 1.15fr .85fr; gap: 20px; align-items: start; }
-  @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
+  .layout { flex: 1; min-height: 0; display: grid; grid-template-columns: 1.15fr .85fr; gap: 20px; align-items: stretch; }
 
   .card {
     background: var(--panel); border: 1px solid var(--line);
     border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;
+    display: flex; flex-direction: column; min-height: 0;
+  }
+  /* Calendar column sizes to its content (no big blank space); scrolls only if it can't fit */
+  .cal-col { align-self: start; max-height: 100%; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+  .cal-col > .card { flex: none; }
+
+  /* Quote of the day */
+  .quote { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 15px 20px; flex: none; }
+  .quote-text { font-size: 13.5px; font-style: italic; color: var(--text); line-height: 1.5; }
+  .quote-author { font-size: 12px; color: var(--muted); margin-top: 6px; font-weight: 600; }
+
+  /* LinkedIn link, fixed bottom-left */
+  .linkedin-link { position: fixed; right: 18px; bottom: 14px; z-index: 60; color: #0A66C2; display: inline-flex; opacity: .85; transition: transform .15s, opacity .15s; }
+  .linkedin-link:hover { opacity: 1; transform: translateY(-2px); }
+  .linkedin-link svg { width: 26px; height: 26px; display: block; }
+
+  /* On narrow screens two stacked cards can't share one viewport — fall back to page scroll */
+  @media (max-width: 860px) {
+    body { overflow: auto; }
+    .app { height: auto; min-height: 100vh; display: block; }
+    .layout { display: flex; flex-direction: column; }
+    .cal-col { overflow-y: visible; max-height: none; }
+    .goals { max-height: 48vh; }
+    #timelineList { max-height: 60vh; }
   }
 
   /* Calendar */
@@ -203,7 +227,8 @@
   .time-text { font-size: 12px; color: var(--muted); margin-top: 6px; display: flex; justify-content: space-between; gap: 8px; }
   .time-text b { color: var(--text); font-weight: 600; }
 
-  .goals { list-style: none; margin: 0; padding: 6px 14px 6px; max-height: 360px; overflow-y: auto; }
+  #stdView, #customView { flex: 1; min-height: 0; flex-direction: column; }
+  .goals { list-style: none; margin: 0; padding: 6px 14px 6px; flex: 1; min-height: 0; overflow-y: auto; }
   .goal {
     display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 12px;
     transition: background .12s; group: goal;
@@ -242,11 +267,26 @@
   .add-row button:hover { filter: brightness(1.05); }
 
   /* Journal */
-  .journal-wrap { padding: 14px 18px 20px; border-top: 1px solid var(--line); }
-  .journal-head { font-size: 11.5px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-  .journal-area { width: 100%; resize: vertical; min-height: 92px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 14px; line-height: 1.55; font-family: inherit; outline: none; transition: .15s; box-sizing: border-box; }
+  .journal-wrap { padding: 12px 18px 16px; border-top: 1px solid var(--line); flex: none; }
+  .journal-head { font-size: 11.5px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+  .journal-expand { background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 2px 6px; border-radius: 6px; text-transform: none; letter-spacing: 0; }
+  .journal-expand:hover { color: var(--accent); background: var(--panel-2); }
+  .journal-area { width: 100%; resize: none; height: 96px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 14px; line-height: 1.55; font-family: inherit; outline: none; transition: .15s; box-sizing: border-box; }
   .journal-area:focus { border-color: var(--accent); background: var(--panel); }
-  .tl-journal { width: 100%; resize: vertical; min-height: 60px; margin-top: 10px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font-size: 13.5px; line-height: 1.5; font-family: inherit; outline: none; box-sizing: border-box; }
+
+  /* Full-page journal */
+  .journal-modal.show { display: flex; }
+  .journal-modal-card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); width: min(920px, 100%); height: min(82vh, 100%); display: flex; flex-direction: column; padding: 18px 20px 20px; }
+  .journal-modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .journal-modal-head span { font-size: 15px; font-weight: 650; }
+  .journal-modal-close { background: transparent; border: none; color: var(--muted); font-size: 18px; cursor: pointer; padding: 2px 6px; border-radius: 6px; }
+  .journal-modal-close:hover { color: var(--text); background: var(--panel-2); }
+  #journalModalArea { flex: 1; min-height: 0; resize: none; width: 100%; padding: 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 15.5px; line-height: 1.65; font-family: inherit; outline: none; box-sizing: border-box; }
+  #journalModalArea:focus { border-color: var(--accent); background: var(--panel); }
+  .tl-journal-head { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; font-size: 10.5px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--muted); }
+  .tl-journal-expand { background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 13px; padding: 1px 5px; border-radius: 6px; }
+  .tl-journal-expand:hover { color: var(--accent); background: var(--panel); }
+  .tl-journal { width: 100%; resize: vertical; min-height: 60px; margin-top: 6px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font-size: 13.5px; line-height: 1.5; font-family: inherit; outline: none; box-sizing: border-box; }
   .tl-journal:focus { border-color: var(--accent); }
 
   /* Custom timelines */
@@ -272,6 +312,8 @@
     background: var(--panel-2); color: var(--text); font-size: 13px; outline: none; font-family: inherit;
   }
   .tl-form-row input[type="datetime-local"]:focus { border-color: var(--accent); }
+  .now-btn { align-self: flex-start; margin-top: 4px; background: transparent; border: none; color: var(--accent); font-size: 11px; font-weight: 600; text-transform: none; letter-spacing: 0; cursor: pointer; padding: 0; }
+  .now-btn:hover { text-decoration: underline; }
   .tl-form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
   .btn-ghost { padding: 9px 15px; border-radius: 10px; border: 1px solid var(--line); background: transparent; color: var(--text); cursor: pointer; font-size: 13.5px; font-weight: 500; }
   .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
@@ -279,7 +321,7 @@
   .btn-primary:hover { filter: brightness(1.05); }
   .tl-form-err { color: var(--danger); font-size: 12.5px; margin-top: 8px; min-height: 1em; }
 
-  #timelineList { padding: 4px 14px 10px; max-height: 440px; overflow-y: auto; }
+  #timelineList { padding: 4px 14px 10px; flex: 1; min-height: 0; overflow-y: auto; }
   .tl-card { border: 1px solid var(--line); border-radius: 14px; padding: 14px 15px; margin: 10px 4px; background: var(--panel-2); }
   .tl-card-head { display: flex; align-items: flex-start; gap: 10px; }
   .tl-name { font-size: 15.5px; font-weight: 650; letter-spacing: -.2px; }
@@ -304,7 +346,7 @@
   .tl-progress.time { margin: 9px 0 5px; }
   .tl-progress.time > div { background: linear-gradient(90deg, var(--accent-2), var(--today-ring)); }
   .tl-meta { font-size: 11.5px; color: var(--muted); }
-  .tl-goals { list-style: none; margin: 6px 0 0; padding: 0; }
+  .tl-goals { list-style: none; margin: 6px 0 0; padding: 0; max-height: 220px; overflow-y: auto; }
   .tl-goals .goal { padding: 8px 8px; }
   .tl-goals .goal:hover { background: var(--panel); }
   .tl-goals .goal-text { font-size: 14px; }
@@ -313,9 +355,6 @@
   .tl-add input:focus { border-color: var(--accent); }
   .tl-add button { flex: none; padding: 0 15px; border-radius: 9px; border: none; background: var(--accent); color: #fff; font-weight: 600; cursor: pointer; font-size: 13px; }
   .tl-empty { text-align: center; color: var(--muted); font-size: 13.5px; padding: 26px 20px; line-height: 1.6; }
-
-  .footer-note { text-align: center; color: var(--muted); font-size: 12px; margin-top: 26px; }
-  .footer-note a { color: var(--accent); text-decoration: none; cursor: pointer; }
 
   /* Auth gate */
   .auth-gate {
@@ -371,19 +410,56 @@
 
   /* Account block inside the settings popover */
   .pop-account { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-  .pop-account img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; flex: none; }
+  .pop-account img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; flex: none; display: block; }
+  /* Avatar with hover menu (View / Change / Reset) */
+  .pop-avatar-wrap { position: relative; flex: none; width: 38px; height: 38px; }
+  .pop-avatar-wrap img { cursor: pointer; }
+  .pop-avatar-menu { position: absolute; top: 0; left: 46px; z-index: 40; min-width: 168px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: 6px; display: none; }
+  .pop-avatar-menu.open { display: block; }
+  .pop-avatar-item { display: block; width: 100%; text-align: left; background: transparent; border: none; color: var(--text); cursor: pointer; font-size: 13px; padding: 8px 10px; border-radius: 8px; white-space: nowrap; }
+  .pop-avatar-item:hover { background: var(--panel-2); }
   .pop-acct-info { min-width: 0; }
-  .pop-acct-name { font-size: 14px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pop-acct-name { font-size: 14px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; padding: 1px 5px; margin-left: -5px; border-radius: 6px; }
+  .pop-acct-name.editable { cursor: pointer; }
+  .pop-acct-name.editable:hover { background: var(--panel-2); }
+  .pop-name-input { font-size: 14px; font-weight: 650; padding: 3px 6px; border-radius: 7px; border: 1px solid var(--accent); background: var(--panel); color: var(--text); outline: none; max-width: 160px; width: 100%; }
+  /* Profile photo viewer */
+  .photo-modal.show { display: flex; }
+  #photoModalImg { max-width: min(80vw, 480px); max-height: 80vh; border-radius: 16px; box-shadow: var(--shadow); }
   .pop-acct-sub { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .pop-acct-btn { width: 100%; padding: 9px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer; transition: .15s; }
   .pop-acct-btn:hover { border-color: var(--accent); color: var(--accent); }
   .pop-acct-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
   .pop-acct-btn.primary:hover { filter: brightness(1.05); color: #fff; }
+
+  /* Share link controls */
+  .share-link-row { display: flex; gap: 6px; margin: 8px 0 2px; }
+  .share-link-row input { flex: 1; min-width: 0; padding: 8px 10px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 12px; outline: none; }
+  .share-link-row button { flex: none; padding: 0 12px; border-radius: 9px; border: none; background: var(--accent); color: #fff; font-weight: 600; font-size: 12.5px; cursor: pointer; }
+  .share-link-row button:hover { filter: brightness(1.05); }
+
+  /* Read-only shared view */
+  .share-banner { display: none; background: var(--accent-soft); color: var(--accent); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; font-size: 13.5px; font-weight: 600; }
+  .share-banner b { color: var(--text); }
+  body.readonly .share-banner { display: block; }
+  body.readonly .add-row,
+  body.readonly .tl-add,
+  body.readonly .tl-newbar,
+  body.readonly .tl-form,
+  body.readonly .goal-del,
+  body.readonly .tl-menu,
+  body.readonly .settings-wrap,
+  body.readonly #themeBtn { display: none !important; }
+  body.readonly .checkbox,
+  body.readonly .goal-text,
+  body.readonly .tl-name { pointer-events: none; }
+  body.readonly .day { cursor: default; }
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 <div class="app">
+  <div class="share-banner" id="shareBanner"></div>
   <header class="top">
     <div class="brand">
       <div class="logo">🎯</div>
@@ -398,12 +474,20 @@
         <button class="icon-btn" id="settingsBtn" title="Settings & account">⚙️</button>
         <div class="popover" id="settingsPop">
           <div class="pop-account">
-            <img id="popAvatar" alt="" referrerpolicy="no-referrer" />
+            <div class="pop-avatar-wrap" id="popAvatarWrap" style="display:none">
+              <img id="popAvatar" alt="" referrerpolicy="no-referrer" />
+              <div class="pop-avatar-menu" id="popAvatarMenu">
+                <button class="pop-avatar-item" id="avatarView">View photo</button>
+                <button class="pop-avatar-item" id="avatarChange">Change photo</button>
+                <button class="pop-avatar-item" id="avatarReset" style="display:none">Use Google photo</button>
+              </div>
+            </div>
             <div class="pop-acct-info">
-              <div class="pop-acct-name" id="popName">Guest</div>
+              <div class="pop-acct-name" id="popName" title="Click to edit">Guest</div>
               <div class="pop-acct-sub" id="popSub">Saved only on this device</div>
             </div>
           </div>
+          <input type="file" id="avatarInput" accept="image/*" style="display:none" />
           <button class="pop-acct-btn" id="popAuthBtn">Sign in</button>
           <div class="pop-divider"></div>
           <h3>Day completion marks</h3>
@@ -417,6 +501,20 @@
           </div>
           <p class="pop-help">A day that reaches the threshold gets a <span class="tick">✓</span>. A past day that ends below it gets a <span class="cross">✗</span>. Today and future days are never crossed.</p>
           <div class="pop-divider"></div>
+          <h3>Share progress</h3>
+          <div id="shareSignedOut" class="pop-help">Sign in with Google to share your progress with a link.</div>
+          <div id="shareControls" style="display:none">
+            <div class="pop-row">
+              <span>Enable share link</span>
+              <label class="switch"><input type="checkbox" id="shareToggle" /><span class="slider"></span></label>
+            </div>
+            <div class="share-link-row" id="shareLinkRow" style="display:none">
+              <input id="shareLinkInput" readonly />
+              <button id="shareCopyBtn" type="button">Copy</button>
+            </div>
+            <p class="pop-help">Anyone with this link can view your progress (read-only).</p>
+          </div>
+          <div class="pop-divider"></div>
           <button class="pop-danger-btn" id="resetBtn">Reset all data…</button>
         </div>
       </div>
@@ -425,21 +523,27 @@
   </header>
 
   <div class="layout">
-    <!-- Calendar -->
-    <section class="card">
-      <div class="cal-head">
-        <div class="cal-title" id="calTitle">Month <span>Year</span></div>
-        <div class="nav">
-          <button id="prevBtn" title="Previous month">‹</button>
-          <button class="today-btn" id="todayBtn">Today</button>
-          <button id="nextBtn" title="Next month">›</button>
+    <!-- Calendar column -->
+    <div class="cal-col">
+      <section class="card">
+        <div class="cal-head">
+          <div class="cal-title" id="calTitle">Month <span>Year</span></div>
+          <div class="nav">
+            <button id="prevBtn" title="Previous month">‹</button>
+            <button class="today-btn" id="todayBtn">Today</button>
+            <button id="nextBtn" title="Next month">›</button>
+          </div>
         </div>
+        <div class="weekdays">
+          <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
+        </div>
+        <div class="grid" id="grid"></div>
+      </section>
+      <div class="quote" id="quoteBox">
+        <div class="quote-text" id="quoteText"></div>
+        <div class="quote-author" id="quoteAuthor"></div>
       </div>
-      <div class="weekdays">
-        <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
-      </div>
-      <div class="grid" id="grid"></div>
-    </section>
+    </div>
 
     <!-- Goals -->
     <section class="card">
@@ -476,8 +580,8 @@
           <button id="addBtn">Add</button>
         </div>
         <div class="journal-wrap">
-          <div class="journal-head">📓 Journal</div>
-          <textarea class="journal-area" id="journalArea" rows="4" placeholder="Write about your day…"></textarea>
+          <div class="journal-head"><span>📓 Journal</span><button class="journal-expand" id="journalExpand" title="Open full-page">⤢</button></div>
+          <textarea class="journal-area" id="journalArea" placeholder="Write about your day…"></textarea>
         </div>
       </div>
 
@@ -490,8 +594,14 @@
           <div class="tl-form-title" id="tlFormTitle">New timeline</div>
           <input id="tlTitle" type="text" placeholder="Timeline name — e.g. Marathon training" maxlength="80" />
           <div class="tl-form-row">
-            <label>Starts<input type="datetime-local" id="tlStart" /></label>
-            <label>Ends<input type="datetime-local" id="tlEnd" /></label>
+            <label>Starts
+              <input type="datetime-local" id="tlStart" />
+              <button type="button" class="now-btn" id="tlStartNow">Set to now</button>
+            </label>
+            <label>Ends
+              <input type="datetime-local" id="tlEnd" />
+              <button type="button" class="now-btn" id="tlEndNow">Set to now</button>
+            </label>
           </div>
           <div class="tl-form-actions">
             <button class="btn-ghost" id="tlCancel">Cancel</button>
@@ -503,14 +613,12 @@
       </div>
     </section>
   </div>
-
-  <p class="footer-note">
-    Everything is saved privately in this browser. •
-    <a id="exportBtn">Export backup</a> ·
-    <a id="importBtn">Import</a>
-    <input type="file" id="importFile" accept="application/json" style="display:none" />
-  </p>
 </div>
+
+<!-- LinkedIn -->
+<a class="linkedin-link" href="https://www.linkedin.com/in/uday-gupta1104/" target="_blank" rel="noopener noreferrer" title="Uday Gupta on LinkedIn" aria-label="LinkedIn profile">
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+</a>
 
 <!-- Sign-in gate -->
 <div class="auth-gate" id="authGate">
@@ -539,6 +647,22 @@
   </div>
 </div>
 
+<!-- Full-page journal -->
+<div class="modal-overlay journal-modal" id="journalModal">
+  <div class="journal-modal-card">
+    <div class="journal-modal-head">
+      <span id="journalModalTitle">Journal</span>
+      <button class="journal-modal-close" id="journalModalClose" title="Close">✕</button>
+    </div>
+    <textarea id="journalModalArea" placeholder="Write…"></textarea>
+  </div>
+</div>
+
+<!-- Profile photo viewer -->
+<div class="modal-overlay photo-modal" id="photoModal">
+  <img id="photoModalImg" alt="Profile photo" />
+</div>
+
 <script>
 (function () {
   "use strict";
@@ -547,6 +671,43 @@
   const THEME_KEY = "goals_calendar_theme";
   const SETTINGS_KEY = "goals_calendar_settings";
   const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+  // ---------- Quote of the day (offline, stable per day) ----------
+  const QUOTES = [
+    { t: "The secret of getting ahead is getting started.", a: "Mark Twain" },
+    { t: "Well done is better than well said.", a: "Benjamin Franklin" },
+    { t: "It always seems impossible until it's done.", a: "Nelson Mandela" },
+    { t: "Lost time is never found again.", a: "Benjamin Franklin" },
+    { t: "A goal without a plan is just a wish.", a: "Antoine de Saint-Exupéry" },
+    { t: "Do the hard jobs first. The easy jobs will take care of themselves.", a: "Dale Carnegie" },
+    { t: "The future depends on what you do today.", a: "Mahatma Gandhi" },
+    { t: "You may delay, but time will not.", a: "Benjamin Franklin" },
+    { t: "Little by little, one travels far.", a: "J.R.R. Tolkien" },
+    { t: "Either you run the day or the day runs you.", a: "Jim Rohn" },
+    { t: "What gets measured gets managed.", a: "Peter Drucker" },
+    { t: "Start where you are. Use what you have. Do what you can.", a: "Arthur Ashe" },
+    { t: "Discipline is choosing between what you want now and what you want most.", a: "Abraham Lincoln" },
+    { t: "The best way to predict the future is to create it.", a: "Peter Drucker" },
+    { t: "Small deeds done are better than great deeds planned.", a: "Peter Marshall" },
+    { t: "Focus on being productive instead of busy.", a: "Tim Ferriss" },
+    { t: "How we spend our days is how we spend our lives.", a: "Annie Dillard" },
+    { t: "Action is the foundational key to all success.", a: "Pablo Picasso" },
+    { t: "Someday is not a day of the week.", a: "Denise Brennan-Nelson" },
+    { t: "Great things are done by a series of small things brought together.", a: "Vincent van Gogh" },
+    { t: "Motivation gets you going, but discipline keeps you growing.", a: "John C. Maxwell" },
+    { t: "The only way to do great work is to love what you do.", a: "Steve Jobs" },
+    { t: "Don't watch the clock; do what it does. Keep going.", a: "Sam Levenson" },
+    { t: "Progress, not perfection.", a: "Anonymous" },
+    { t: "Fall seven times, stand up eight.", a: "Japanese Proverb" },
+    { t: "The journey of a thousand miles begins with one step.", a: "Lao Tzu" }
+  ];
+  function renderQuote() {
+    const q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+    const tEl = document.getElementById("quoteText");
+    const aEl = document.getElementById("quoteAuthor");
+    if (tEl) tEl.textContent = "“" + q.t + "”";
+    if (aEl) aEl.textContent = "— " + q.a;
+  }
 
   // ---------- State ----------
   let data = load();
@@ -726,14 +887,14 @@
   function renderGoals() {
     if (scope === "custom") {
       stdView.style.display = "none";
-      customView.style.display = "block";
+      customView.style.display = "flex";
       scopeLabel.textContent = "Custom timelines";
       const n = data.custom.length;
       scopeTitle.textContent = n ? (n + " timeline" + (n > 1 ? "s" : "")) : "Your goal timelines";
       renderTimelines();
       return;
     }
-    stdView.style.display = "block";
+    stdView.style.display = "flex";
     customView.style.display = "none";
 
     const list = currentList();
@@ -754,7 +915,7 @@
         const cb = document.createElement("div");
         cb.className = "checkbox" + (g.done ? " checked" : "");
         cb.innerHTML = CHECK_SVG;
-        cb.addEventListener("click", () => { g.done = !g.done; save(); renderAll(); });
+        cb.addEventListener("click", () => { if (readOnly) return; g.done = !g.done; save(); renderAll(); });
 
         const txt = document.createElement("div");
         txt.className = "goal-text";
@@ -790,16 +951,63 @@
     if (scope === "custom") return;
     const key = currentBucketKey();
     journalArea.value = (data.journal[scope] && data.journal[scope][key]) || "";
-    journalArea.placeholder = scope === "daily" ? "Write about your day…"
+    journalArea.readOnly = readOnly;
+    journalArea.placeholder = readOnly ? "No journal entry" : (scope === "daily" ? "Write about your day…"
       : scope === "monthly" ? "Notes and reflections for this month…"
-      : "Reflections and highlights for this year…";
+      : "Reflections and highlights for this year…");
   }
   journalArea.addEventListener("input", () => {
-    if (scope === "custom") return;
+    if (readOnly || scope === "custom") return;
     const key = currentBucketKey();
     if (!data.journal[scope]) data.journal[scope] = {};
     data.journal[scope][key] = journalArea.value;
     save();
+  });
+
+  // Full-page journal — works for the day/month/year journal AND per-timeline journals
+  const journalExpand = document.getElementById("journalExpand");
+  const journalModal = document.getElementById("journalModal");
+  const journalModalArea = document.getElementById("journalModalArea");
+  const journalModalTitle = document.getElementById("journalModalTitle");
+  const journalModalClose = document.getElementById("journalModalClose");
+  let journalModalSource = null;                   // { title, get(), set(v) }
+
+  // exposed so timeline cards can open the same full-page editor
+  window.openJournalModalFor = function (source) {
+    journalModalSource = source;
+    journalModalTitle.textContent = "📓 Journal · " + source.title;
+    journalModalArea.value = source.get();
+    journalModalArea.readOnly = readOnly;
+    journalModal.classList.add("show");
+    journalModalArea.focus();
+  };
+  function openMainJournalModal() {
+    if (scope === "custom") return;
+    openJournalModalFor({
+      title: scopeHeading(),
+      get: () => journalArea.value,
+      set: (v) => {
+        const key = currentBucketKey();
+        if (!data.journal[scope]) data.journal[scope] = {};
+        data.journal[scope][key] = v;
+        journalArea.value = v;
+      }
+    });
+  }
+  function closeJournalModal() { journalModal.classList.remove("show"); journalModalSource = null; }
+
+  journalExpand.addEventListener("click", openMainJournalModal);
+  journalModalClose.addEventListener("click", closeJournalModal);
+  journalModal.addEventListener("click", (e) => { if (e.target === journalModal) closeJournalModal(); });
+  journalModalArea.addEventListener("input", () => {
+    if (readOnly || !journalModalSource) return;
+    journalModalSource.set(journalModalArea.value);
+    save();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    if (journalModal.classList.contains("show")) closeJournalModal();
+    if (photoModal.classList.contains("show")) photoModal.classList.remove("show");
   });
 
   // ---------- Time elapsed / left in the current day / month / year ----------
@@ -851,6 +1059,7 @@
   }
 
   function editGoal(g, txtEl, rerender) {
+    if (readOnly) return;
     rerender = rerender || renderAll;
     const input = document.createElement("input");
     input.type = "text"; input.value = g.text; input.maxLength = 200;
@@ -1001,7 +1210,7 @@
     tl.goals.forEach((g, idx) => {
       const li = document.createElement("li"); li.className = "goal" + (g.done ? " done" : "");
       const cb = document.createElement("div"); cb.className = "checkbox" + (g.done ? " checked" : ""); cb.innerHTML = CHECK_SVG;
-      cb.addEventListener("click", () => { g.done = !g.done; save(); renderTimelines(); });
+      cb.addEventListener("click", () => { if (readOnly) return; g.done = !g.done; save(); renderTimelines(); });
       const txt = document.createElement("div"); txt.className = "goal-text"; txt.textContent = g.text;
       txt.title = "Double-click to edit";
       txt.addEventListener("dblclick", () => editGoal(g, txt, renderTimelines));
@@ -1026,19 +1235,31 @@
     add.appendChild(inp); add.appendChild(addBtn);
     card.appendChild(add);
 
-    // per-timeline journal
+    // per-timeline journal (with full-page expand)
+    const jHead = document.createElement("div"); jHead.className = "tl-journal-head";
+    const jLabel = document.createElement("span"); jLabel.textContent = "📓 Journal";
+    const jExpand = document.createElement("button"); jExpand.className = "tl-journal-expand"; jExpand.innerHTML = "⤢"; jExpand.title = "Open full-page";
+    jHead.appendChild(jLabel); jHead.appendChild(jExpand);
     const journal = document.createElement("textarea");
     journal.className = "tl-journal";
     journal.rows = 3;
     journal.placeholder = "Journal for this timeline…";
     journal.value = tl.journal || "";
-    journal.addEventListener("input", () => { tl.journal = journal.value; save(); });
+    journal.readOnly = readOnly;
+    journal.addEventListener("input", () => { if (readOnly) return; tl.journal = journal.value; save(); });
+    jExpand.addEventListener("click", () => openJournalModalFor({
+      title: tl.title || "Untitled timeline",
+      get: () => tl.journal || "",
+      set: (v) => { tl.journal = v; journal.value = v; }
+    }));
+    card.appendChild(jHead);
     card.appendChild(journal);
 
     return card;
   }
 
   function renameTimeline(tl, nameEl) {
+    if (readOnly) return;
     const input = document.createElement("input"); input.type = "text"; input.value = tl.title || ""; input.maxLength = 80;
     input.style.cssText = "width:100%;font-size:15px;padding:6px 8px;border-radius:8px;border:1px solid var(--accent);background:var(--panel);color:var(--text);outline:none;";
     nameEl.replaceWith(input); input.focus(); input.select();
@@ -1098,6 +1319,8 @@
   }
 
   newTlBtn.addEventListener("click", openTlForm);
+  document.getElementById("tlStartNow").addEventListener("click", () => { tlStart.value = toLocalInput(new Date()); });
+  document.getElementById("tlEndNow").addEventListener("click", () => { tlEnd.value = toLocalInput(new Date()); });
   document.getElementById("tlCancel").addEventListener("click", closeTlForm);
   tlCreateBtn.addEventListener("click", () => {
     const s = tlStart.value, e = tlEnd.value;
@@ -1207,31 +1430,45 @@
     renderAll();
   });
 
-  // ---------- Export / Import ----------
-  document.getElementById("exportBtn").addEventListener("click", () => {
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "goals-backup-" + dayKey(now) + ".json";
-    a.click(); URL.revokeObjectURL(a.href);
+  // ---------- Share progress ----------
+  const shareSignedOut = document.getElementById("shareSignedOut");
+  const shareControls  = document.getElementById("shareControls");
+  const shareToggle    = document.getElementById("shareToggle");
+  const shareLinkRow   = document.getElementById("shareLinkRow");
+  const shareLinkInput = document.getElementById("shareLinkInput");
+  const shareCopyBtn   = document.getElementById("shareCopyBtn");
+
+  function shareUrl(token) { return location.origin + "/?share=" + token; }
+  function applyShareStatus(s) {
+    shareToggle.checked = !!(s && s.enabled);
+    if (s && s.enabled && s.token) {
+      shareLinkInput.value = shareUrl(s.token);
+      shareLinkRow.style.display = "flex";
+    } else {
+      shareLinkRow.style.display = "none";
+    }
+  }
+  // Called from the account UI: signed-in users can share, guests cannot.
+  function refreshShareUI(signedIn) {
+    if (!signedIn) {
+      shareSignedOut.style.display = "";
+      shareControls.style.display = "none";
+      return;
+    }
+    shareSignedOut.style.display = "none";
+    shareControls.style.display = "";
+    api("GET", "/api/share/status").then(r => r.json()).then(applyShareStatus).catch(() => {});
+  }
+  shareToggle.addEventListener("change", () => {
+    const endpoint = shareToggle.checked ? "/api/share/enable" : "/api/share/disable";
+    api("POST", endpoint).then(r => r.json()).then(applyShareStatus)
+      .catch(() => { shareToggle.checked = !shareToggle.checked; });
   });
-  const importFile = document.getElementById("importFile");
-  document.getElementById("importBtn").addEventListener("click", () => importFile.click());
-  importFile.addEventListener("change", e => {
-    const file = e.target.files[0]; if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const parsed = JSON.parse(reader.result);
-        if (parsed && parsed.daily && parsed.monthly && parsed.yearly) {
-          if (confirm("Import will replace your current goals. Continue?")) {
-            data = normalize(parsed); save(); renderAll();
-          }
-        } else alert("That file doesn't look like a valid backup.");
-      } catch (err) { alert("Could not read that file."); }
-      importFile.value = "";
-    };
-    reader.readAsText(file);
+  shareCopyBtn.addEventListener("click", () => {
+    const url = shareLinkInput.value;
+    const done = () => { const t = shareCopyBtn.textContent; shareCopyBtn.textContent = "Copied!"; setTimeout(() => shareCopyBtn.textContent = t, 1200); };
+    if (navigator.clipboard) navigator.clipboard.writeText(url).then(done).catch(() => { shareLinkInput.select(); });
+    else { shareLinkInput.select(); done(); }
   });
 
   // ---------- Render all ----------
@@ -1247,14 +1484,24 @@
   let currentUser = null;
   let googleClientId = null;
   let isGuest = false;
+  let readOnly = false;                            // true when viewing someone's shared link
 
-  const authGate   = document.getElementById("authGate");
-  const gsiButton  = document.getElementById("gsiButton");
-  const guestBtn   = document.getElementById("guestBtn");
+  const authGate    = document.getElementById("authGate");
+  const gsiButton   = document.getElementById("gsiButton");
+  const guestBtn    = document.getElementById("guestBtn");
+  const shareBanner = document.getElementById("shareBanner");
   const popAvatar  = document.getElementById("popAvatar");
   const popName    = document.getElementById("popName");
   const popSub     = document.getElementById("popSub");
   const popAuthBtn = document.getElementById("popAuthBtn");
+  const popAvatarWrap = document.getElementById("popAvatarWrap");
+  const popAvatarMenu = document.getElementById("popAvatarMenu");
+  const avatarView = document.getElementById("avatarView");
+  const avatarChange = document.getElementById("avatarChange");
+  const avatarReset = document.getElementById("avatarReset");
+  const avatarInput = document.getElementById("avatarInput");
+  const photoModal = document.getElementById("photoModal");
+  const photoModalImg = document.getElementById("photoModalImg");
   const syncBadge  = document.getElementById("syncBadge");
   const syncText   = document.getElementById("syncText");
 
@@ -1353,17 +1600,147 @@
     popSub.textContent = user.email || "Signed in — synced to your account";
     popAuthBtn.textContent = "Sign out";
     popAuthBtn.className = "pop-acct-btn";
+    popName.classList.add("editable");              // click the name to rename
+    popAvatarWrap.style.display = "";                // hover the photo to view / change
+    updatePhotoResetVisibility();
+    refreshShareUI(true);
   }
   function showGuest() {
     popAvatar.style.display = "none";
+    popAvatarWrap.style.display = "none";
     popName.textContent = "Guest";
+    popName.classList.remove("editable");
     popSub.textContent = "Saved only on this device";
     popAuthBtn.textContent = "Sign in with Google";
     popAuthBtn.className = "pop-acct-btn primary";   // guest can upgrade to a synced account
     syncBadge.style.display = "inline-flex";
     syncBadge.className = "sync-badge local";
     syncText.textContent = "On this device";
+    refreshShareUI(false);
   }
+
+  // "Use Google photo" appears in the avatar menu only when a custom picture is set.
+  function updatePhotoResetVisibility() {
+    const custom = !!(currentUser && currentUser.picture && currentUser.picture.indexOf("data:") === 0);
+    avatarReset.style.display = custom ? "block" : "none";
+  }
+
+  // Keep the account name/email/picture in sync with the server (custom display name/photo).
+  async function refreshProfile() {
+    if (!authToken) return;
+    try {
+      const r = await api("GET", "/api/profile");
+      if (!r.ok) return;
+      const u = await r.json();
+      currentUser = u;
+      popName.textContent = u.name || u.email || "Account";
+      popSub.textContent = u.email || "";
+      if (u.picture) { popAvatar.src = u.picture; popAvatar.style.display = ""; }
+      updatePhotoResetVisibility();
+    } catch (e) {}
+  }
+
+  // --- Avatar upload (resized client-side to a small square data URL) ---
+  function fileToSquareDataUrl(file, size) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = size; canvas.height = size;
+          const ctx = canvas.getContext("2d");
+          const s = Math.min(img.width, img.height);
+          const sx = (img.width - s) / 2, sy = (img.height - s) / 2;
+          ctx.drawImage(img, sx, sy, s, s, 0, 0, size, size);
+          resolve(canvas.toDataURL("image/jpeg", 0.85));
+        };
+        img.onerror = reject;
+        img.src = reader.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+  // Avatar hover menu: View photo / Change photo / Use Google photo
+  let avatarMenuTimer = null;
+  function showAvatarMenu() { if (!authToken) return; clearTimeout(avatarMenuTimer); popAvatarMenu.classList.add("open"); }
+  function hideAvatarMenuSoon() { clearTimeout(avatarMenuTimer); avatarMenuTimer = setTimeout(() => popAvatarMenu.classList.remove("open"), 160); }
+  popAvatarWrap.addEventListener("mouseenter", showAvatarMenu);
+  popAvatarWrap.addEventListener("mouseleave", hideAvatarMenuSoon);
+  popAvatarMenu.addEventListener("mouseenter", showAvatarMenu);
+  popAvatarMenu.addEventListener("mouseleave", hideAvatarMenuSoon);
+  avatarView.addEventListener("click", () => {
+    popAvatarMenu.classList.remove("open");
+    if (!popAvatar.src) return;
+    photoModalImg.src = popAvatar.src;
+    photoModal.classList.add("show");
+  });
+  avatarChange.addEventListener("click", () => { popAvatarMenu.classList.remove("open"); if (authToken) avatarInput.click(); });
+
+  avatarInput.addEventListener("change", async () => {
+    const file = avatarInput.files[0];
+    avatarInput.value = "";
+    if (!file || !authToken) return;
+    try {
+      const dataUrl = await fileToSquareDataUrl(file, 256);
+      const r = await api("PUT", "/api/profile/picture", { picture: dataUrl });
+      if (r.ok) {
+        const u = await r.json();
+        currentUser = u;
+        popAvatar.src = u.picture; popAvatar.style.display = "";
+        updatePhotoResetVisibility();
+      } else if (r.status === 400) {
+        alert("That image is too large — please pick a smaller one.");
+      }
+    } catch (e) { alert("Couldn't read that image."); }
+  });
+  avatarReset.addEventListener("click", async () => {
+    popAvatarMenu.classList.remove("open");
+    if (!authToken) return;
+    try {
+      const r = await api("PUT", "/api/profile/picture", { picture: "" });
+      if (r.ok) {
+        const u = await r.json();
+        currentUser = u;
+        if (u.picture) { popAvatar.src = u.picture; popAvatar.style.display = ""; }
+        else popAvatar.style.display = "none";
+        updatePhotoResetVisibility();
+      }
+    } catch (e) {}
+  });
+  photoModal.addEventListener("click", () => photoModal.classList.remove("show"));
+
+  // Click the name to edit it inline (no pencil)
+  popName.addEventListener("click", () => {
+    if (!authToken || !popName.classList.contains("editable")) return;
+    const current = currentUser && currentUser.name ? currentUser.name : "";
+    const input = document.createElement("input");
+    input.className = "pop-name-input"; input.value = current; input.maxLength = 60;
+    input.placeholder = "Display name";
+    popName.replaceWith(input);
+    input.focus(); input.select();
+    let doneOnce = false;
+    const restore = () => { input.replaceWith(popName); };
+    const commit = async () => {
+      if (doneOnce) return; doneOnce = true;
+      const v = input.value.trim();
+      restore();
+      try {
+        const r = await api("PUT", "/api/profile", { name: v });
+        if (r.ok) {
+          const u = await r.json();
+          currentUser = u;
+          popName.textContent = u.name || u.email || "Account";
+        }
+      } catch (e) {}
+    };
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") commit();
+      else if (e.key === "Escape") { doneOnce = true; restore(); }
+    });
+    input.addEventListener("blur", commit);
+  });
   function hideGate() { authGate.classList.remove("show"); }
   function showGate() {
     authGate.classList.add("show");
@@ -1466,6 +1843,7 @@
       if (notExpired) {
         showUser({ email: claims.email, name: claims.name, picture: claims.picture });
         hideGate();
+        refreshProfile();                          // pick up a custom display name set earlier
         await syncFromServer(claims.sub);
         return;
       }
@@ -1482,9 +1860,30 @@
     showGate();
   }
 
+  // Read-only view of someone else's shared progress (opened via /?share=<token>).
+  async function enterSharedView(token) {
+    readOnly = true;
+    document.body.classList.add("readonly");
+    hideGate();
+    try {
+      const res = await fetch("/api/public/share/" + encodeURIComponent(token));
+      if (!res.ok) throw new Error("not found");
+      const body = await res.json();               // { name, picture, updatedAt, data }
+      data = normalize(body.data || {});
+      shareBanner.textContent = "👀 Viewing " + (body.name || "someone") + "’s Kairos progress — read-only.";
+    } catch (e) {
+      data = emptyData();
+      shareBanner.textContent = "⚠️ This share link is invalid or has been turned off.";
+    }
+    renderAll();
+  }
+
   // Initial paint (empty/local) sits behind the gate until sign-in completes.
   renderAll();
-  initAuth();
+  renderQuote();
+  const shareParam = new URLSearchParams(location.search).get("share");
+  if (shareParam) enterSharedView(shareParam);
+  else initAuth();
 
   // Keep the time-elapsed / time-left meter current without a user action.
   setInterval(renderTimeStrip, 60000);

@@ -29,10 +29,24 @@ public class User {
     @Column(nullable = false)
     private String email;
 
+    /** Name from the Google profile, refreshed on each login. */
     private String name;
 
+    /** User-chosen display name; when set, overrides {@link #name}. Not touched by login. */
+    @Column(name = "display_name")
+    private String displayName;
+
+    /** Avatar URL from the Google profile, refreshed on each login. */
     @Column(length = 1024)
     private String picture;
+
+    /** User-uploaded avatar (a data URL); when set, overrides {@link #picture}. Not touched by login. */
+    @Column(name = "custom_picture", columnDefinition = "text")
+    private String customPicture;
+
+    /** When non-null, progress is shared read-only at /?share=&lt;shareToken&gt;. */
+    @Column(name = "share_token", unique = true)
+    private String shareToken;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -86,8 +100,42 @@ public class User {
         return name;
     }
 
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
+    /** The name to show: the user's chosen display name if set, else the Google name. */
+    public String effectiveName() {
+        return (displayName != null && !displayName.isBlank()) ? displayName : name;
+    }
+
+    public String getCustomPicture() {
+        return customPicture;
+    }
+
+    public void setCustomPicture(String customPicture) {
+        this.customPicture = customPicture;
+    }
+
+    /** The avatar to show: the uploaded picture if set, else the Google picture. */
+    public String effectivePicture() {
+        return (customPicture != null && !customPicture.isBlank()) ? customPicture : picture;
+    }
+
     public String getPicture() {
         return picture;
+    }
+
+    public String getShareToken() {
+        return shareToken;
+    }
+
+    public void setShareToken(String shareToken) {
+        this.shareToken = shareToken;
     }
 
     public Instant getCreatedAt() {

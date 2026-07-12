@@ -33,7 +33,7 @@ public class JwtServiceImpl implements JwtService {
         return Jwts.builder()
                 .subject(String.valueOf(user.getId()))
                 .claim("email", user.getEmail())
-                .claim("name", user.getName())
+                .claim("name", user.effectiveName())
                 .claim("picture", user.getPicture())
                 .issuedAt(now)
                 .expiration(expiry)
