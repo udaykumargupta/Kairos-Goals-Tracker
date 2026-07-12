@@ -191,10 +191,17 @@
   .panel-head h2 { margin: 2px 0 0; font-size: 19px; letter-spacing: -.3px; }
 
   .progress-wrap { padding: 12px 20px 6px; }
-  .progress-bar { height: 8px; background: var(--panel-2); border-radius: 99px; overflow: hidden; border: 1px solid var(--line); }
+  .progress-bar { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; border: none; }
   .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg,var(--accent),var(--accent-2)); border-radius: 99px; transition: width .3s ease; }
   .progress-text { font-size: 12px; color: var(--muted); margin-top: 6px; display: flex; justify-content: space-between; }
   .progress-text b { color: var(--text); }
+
+  /* Time-elapsed / time-left meter */
+  .time-wrap { padding: 2px 20px 8px; }
+  .time-bar { height: 7px; background: var(--line); border: none; border-radius: 99px; overflow: hidden; }
+  .time-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent-2), var(--today-ring)); border-radius: 99px; transition: width .4s ease; }
+  .time-text { font-size: 12px; color: var(--muted); margin-top: 6px; display: flex; justify-content: space-between; gap: 8px; }
+  .time-text b { color: var(--text); font-weight: 600; }
 
   .goals { list-style: none; margin: 0; padding: 6px 14px 6px; max-height: 360px; overflow-y: auto; }
   .goal {
@@ -222,7 +229,7 @@
   .empty { text-align: center; color: var(--muted); font-size: 14px; padding: 30px 20px; }
   .empty .big { font-size: 30px; margin-bottom: 8px; }
 
-  .add-row { display: flex; gap: 8px; padding: 12px 18px 20px; border-top: 1px solid var(--line); margin-top: 6px; }
+  .add-row { display: flex; gap: 8px; padding: 12px 18px 14px; border-top: 1px solid var(--line); margin-top: 6px; }
   .add-row input {
     flex: 1; padding: 12px 14px; border-radius: 11px; border: 1px solid var(--line);
     background: var(--panel-2); color: var(--text); font-size: 14.5px; outline: none; transition: .15s;
@@ -233,6 +240,14 @@
     background: var(--accent); color: #fff; font-size: 14px; font-weight: 600; transition: .15s;
   }
   .add-row button:hover { filter: brightness(1.05); }
+
+  /* Journal */
+  .journal-wrap { padding: 14px 18px 20px; border-top: 1px solid var(--line); }
+  .journal-head { font-size: 11.5px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .journal-area { width: 100%; resize: vertical; min-height: 92px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 14px; line-height: 1.55; font-family: inherit; outline: none; transition: .15s; box-sizing: border-box; }
+  .journal-area:focus { border-color: var(--accent); background: var(--panel); }
+  .tl-journal { width: 100%; resize: vertical; min-height: 60px; margin-top: 10px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font-size: 13.5px; line-height: 1.5; font-family: inherit; outline: none; box-sizing: border-box; }
+  .tl-journal:focus { border-color: var(--accent); }
 
   /* Custom timelines */
   .tab { white-space: nowrap; padding: 10px 6px; }
@@ -275,8 +290,19 @@
   .tl-pill.ended { background: var(--missed-bg); color: var(--danger); }
   .tl-del { flex: none; background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 15px; padding: 2px 4px; border-radius: 6px; }
   .tl-del:hover { color: var(--danger); }
-  .tl-progress { height: 6px; background: var(--panel); border: 1px solid var(--line); border-radius: 99px; margin: 13px 0 5px; overflow: hidden; }
+  .tl-menu { position: relative; flex: none; }
+  .tl-menu-btn { background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 18px; line-height: 1; padding: 2px 7px; border-radius: 7px; }
+  .tl-menu-btn:hover { color: var(--text); background: var(--panel); }
+  .tl-menu-pop { position: absolute; right: 0; top: 28px; z-index: 25; min-width: 168px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: 6px; display: none; }
+  .tl-menu-pop.open { display: block; }
+  .tl-menu-item { display: block; width: 100%; text-align: left; background: transparent; border: none; color: var(--text); cursor: pointer; font-size: 13.5px; padding: 9px 10px; border-radius: 8px; }
+  .tl-menu-item:hover { background: var(--panel-2); }
+  .tl-menu-item.danger { color: var(--danger); }
+  .tl-form-title { font-size: 13px; font-weight: 700; letter-spacing: .3px; margin-bottom: 10px; }
+  .tl-progress { height: 7px; background: var(--line); border: none; border-radius: 99px; margin: 13px 0 5px; overflow: hidden; }
   .tl-progress > div { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius: 99px; transition: width .3s ease; }
+  .tl-progress.time { margin: 9px 0 5px; }
+  .tl-progress.time > div { background: linear-gradient(90deg, var(--accent-2), var(--today-ring)); }
   .tl-meta { font-size: 11.5px; color: var(--muted); }
   .tl-goals { list-style: none; margin: 6px 0 0; padding: 0; }
   .tl-goals .goal { padding: 8px 8px; }
@@ -312,6 +338,28 @@
   .gsi-missing { color: var(--danger); font-size: 12.5px; line-height: 1.6; border: 1px solid var(--line); border-radius: 12px; padding: 14px; text-align: left; }
   .gsi-missing code { background: var(--panel-2); padding: 1px 5px; border-radius: 5px; }
   .auth-foot { margin-top: 22px; font-size: 12px; color: var(--muted); }
+  .auth-or { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 12px; margin: 18px 0 14px; }
+  .auth-or::before, .auth-or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+  .guest-btn { width: 100%; padding: 11px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; transition: .15s; }
+  .guest-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Reset control + confirmation modal */
+  .pop-divider { height: 1px; background: var(--line); margin: 12px 0 10px; }
+  .pop-danger-btn { width: 100%; padding: 9px; border-radius: 10px; border: 1px solid var(--line); background: transparent; color: var(--danger); font-size: 13px; font-weight: 600; cursor: pointer; transition: .15s; }
+  .pop-danger-btn:hover { background: var(--missed-bg); border-color: var(--danger); }
+  .modal-overlay { position: fixed; inset: 0; z-index: 200; display: none; align-items: center; justify-content: center; padding: 24px; background: rgba(0,0,0,.5); }
+  .modal-overlay.show { display: flex; }
+  .modal-card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); padding: 24px; max-width: 400px; width: 100%; }
+  .modal-card h3 { margin: 0 0 8px; font-size: 19px; letter-spacing: -.2px; }
+  .modal-card p { margin: 0 0 16px; color: var(--muted); font-size: 14px; line-height: 1.55; }
+  .modal-card p b { color: var(--text); }
+  .modal-label { display: block; font-size: 12.5px; color: var(--muted); margin-bottom: 6px; }
+  .modal-label b { color: var(--danger); font-family: ui-monospace, monospace; }
+  #resetInput { width: 100%; padding: 11px 13px; border-radius: 11px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 14.5px; outline: none; }
+  #resetInput:focus { border-color: var(--danger); }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+  .btn-danger { padding: 9px 16px; border-radius: 10px; border: none; background: var(--danger); color: #fff; font-weight: 600; font-size: 13.5px; cursor: pointer; transition: .15s; }
+  .btn-danger:disabled { opacity: .45; cursor: not-allowed; }
 
   /* User chip + sync badge */
   .sync-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
@@ -319,15 +367,18 @@
   .sync-badge.saved .dot { background: var(--accent-2); }
   .sync-badge.saving .dot { background: var(--today-ring); }
   .sync-badge.offline .dot { background: var(--danger); }
-  .user-chip {
-    display: flex; align-items: center; gap: 8px; padding: 4px 4px 4px 10px;
-    border: 1px solid var(--line); border-radius: 99px; background: var(--panel); box-shadow: var(--shadow);
-  }
-  .user-chip img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
-  .user-chip .u-name { font-size: 13px; font-weight: 600; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .user-chip .u-signout { border: none; background: var(--panel-2); color: var(--muted); border-radius: 99px; padding: 6px 11px; font-size: 12px; cursor: pointer; transition: .15s; }
-  .user-chip .u-signout:hover { color: var(--danger); }
-  @media (max-width: 620px) { .user-chip .u-name { display: none; } }
+  .sync-badge.local .dot { background: var(--accent); }
+
+  /* Account block inside the settings popover */
+  .pop-account { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .pop-account img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; flex: none; }
+  .pop-acct-info { min-width: 0; }
+  .pop-acct-name { font-size: 14px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pop-acct-sub { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pop-acct-btn { width: 100%; padding: 9px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer; transition: .15s; }
+  .pop-acct-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .pop-acct-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .pop-acct-btn.primary:hover { filter: brightness(1.05); color: #fff; }
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
@@ -343,14 +394,18 @@
     </div>
     <div class="top-actions">
       <div class="sync-badge" id="syncBadge" style="display:none"><span class="dot"></span><span id="syncText">Saved</span></div>
-      <div class="user-chip" id="userChip" style="display:none">
-        <img id="userAvatar" alt="" referrerpolicy="no-referrer" />
-        <span class="u-name" id="userName"></span>
-        <button class="u-signout" id="signOutBtn">Sign out</button>
-      </div>
       <div class="settings-wrap">
-        <button class="icon-btn" id="settingsBtn" title="Completion settings">⚙️</button>
+        <button class="icon-btn" id="settingsBtn" title="Settings & account">⚙️</button>
         <div class="popover" id="settingsPop">
+          <div class="pop-account">
+            <img id="popAvatar" alt="" referrerpolicy="no-referrer" />
+            <div class="pop-acct-info">
+              <div class="pop-acct-name" id="popName">Guest</div>
+              <div class="pop-acct-sub" id="popSub">Saved only on this device</div>
+            </div>
+          </div>
+          <button class="pop-acct-btn" id="popAuthBtn">Sign in</button>
+          <div class="pop-divider"></div>
           <h3>Day completion marks</h3>
           <div class="pop-row">
             <span>Mark completed days</span>
@@ -361,6 +416,8 @@
             <input type="range" id="setThreshold" min="10" max="100" step="5" />
           </div>
           <p class="pop-help">A day that reaches the threshold gets a <span class="tick">✓</span>. A past day that ends below it gets a <span class="cross">✗</span>. Today and future days are never crossed.</p>
+          <div class="pop-divider"></div>
+          <button class="pop-danger-btn" id="resetBtn">Reset all data…</button>
         </div>
       </div>
       <button class="icon-btn" id="themeBtn" title="Toggle theme">🌙</button>
@@ -406,10 +463,21 @@
             <span><b id="progressPct">0%</b></span>
           </div>
         </div>
+        <div class="time-wrap">
+          <div class="time-bar"><div class="time-fill" id="timeFill"></div></div>
+          <div class="time-text">
+            <span id="timeElapsed">—</span>
+            <span><b id="timeLeft">—</b></span>
+          </div>
+        </div>
         <ul class="goals" id="goals"></ul>
         <div class="add-row">
           <input id="goalInput" type="text" placeholder="Add a goal and press Enter…" maxlength="200" />
           <button id="addBtn">Add</button>
+        </div>
+        <div class="journal-wrap">
+          <div class="journal-head">📓 Journal</div>
+          <textarea class="journal-area" id="journalArea" rows="4" placeholder="Write about your day…"></textarea>
         </div>
       </div>
 
@@ -419,6 +487,7 @@
           <button class="tl-new-btn" id="newTlBtn">＋ New timeline</button>
         </div>
         <div class="tl-form" id="newTlForm">
+          <div class="tl-form-title" id="tlFormTitle">New timeline</div>
           <input id="tlTitle" type="text" placeholder="Timeline name — e.g. Marathon training" maxlength="80" />
           <div class="tl-form-row">
             <label>Starts<input type="datetime-local" id="tlStart" /></label>
@@ -448,9 +517,25 @@
   <div class="auth-card">
     <div class="logo-lg">🎯</div>
     <h2>Kairos</h2>
-    <p>Sign in with Google to save your goals to your account and sync them across your devices.</p>
+    <p>Sign in with Google to sync your goals across devices — or continue as a guest and keep them on this device.</p>
     <div id="gsiButton"></div>
-    <div class="auth-foot">Your goals are stored privately against your Google account.</div>
+    <div class="auth-or">or</div>
+    <button class="guest-btn" id="guestBtn">Continue as guest</button>
+    <div class="auth-foot">Guest goals are saved only in this browser. You can sign in later to sync them.</div>
+  </div>
+</div>
+
+<!-- Reset confirmation modal -->
+<div class="modal-overlay" id="resetModal">
+  <div class="modal-card">
+    <h3>Reset everything?</h3>
+    <p>This permanently deletes <b>all</b> your goals — daily, monthly, yearly, and every custom timeline. This can't be undone.</p>
+    <label class="modal-label">Type <b>confirm</b> below to proceed</label>
+    <input type="text" id="resetInput" placeholder="confirm" autocomplete="off" spellcheck="false" />
+    <div class="modal-actions">
+      <button class="btn-ghost" id="resetCancel">Cancel</button>
+      <button class="btn-danger" id="resetConfirm" disabled>Reset everything</button>
+    </div>
   </div>
 </div>
 
@@ -482,7 +567,7 @@
   }
   function saveSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }
 
-  function emptyData() { return { daily: {}, monthly: {}, yearly: {}, custom: [] }; }
+  function emptyData() { return { daily: {}, monthly: {}, yearly: {}, custom: [], journal: { daily: {}, monthly: {}, yearly: {} } }; }
   function normalize(raw) {
     let d = emptyData();
     if (raw && typeof raw === "object") d = Object.assign(d, raw);
@@ -490,6 +575,10 @@
     if (!d.monthly) d.monthly = {};
     if (!d.yearly) d.yearly = {};
     if (!Array.isArray(d.custom)) d.custom = [];
+    if (!d.journal || typeof d.journal !== "object") d.journal = {};
+    if (!d.journal.daily) d.journal.daily = {};
+    if (!d.journal.monthly) d.journal.monthly = {};
+    if (!d.journal.yearly) d.journal.yearly = {};
     return d;
   }
   function load() {
@@ -615,8 +704,12 @@
   const progressFill = document.getElementById("progressFill");
   const progressLabel = document.getElementById("progressLabel");
   const progressPct = document.getElementById("progressPct");
+  const timeFill = document.getElementById("timeFill");
+  const timeElapsed = document.getElementById("timeElapsed");
+  const timeLeft = document.getElementById("timeLeft");
   const stdView = document.getElementById("stdView");
   const customView = document.getElementById("customView");
+  const journalArea = document.getElementById("journalArea");
 
   function scopeHeading() {
     if (scope === "daily") {
@@ -687,6 +780,74 @@
     progressFill.style.width = pct + "%";
     progressPct.textContent = pct + "%";
     progressLabel.textContent = total ? (done + " of " + total + " done") : "No goals yet";
+
+    renderTimeStrip();
+    renderJournal();
+  }
+
+  // ---------- Journal (day / month / year) ----------
+  function renderJournal() {
+    if (scope === "custom") return;
+    const key = currentBucketKey();
+    journalArea.value = (data.journal[scope] && data.journal[scope][key]) || "";
+    journalArea.placeholder = scope === "daily" ? "Write about your day…"
+      : scope === "monthly" ? "Notes and reflections for this month…"
+      : "Reflections and highlights for this year…";
+  }
+  journalArea.addEventListener("input", () => {
+    if (scope === "custom") return;
+    const key = currentBucketKey();
+    if (!data.journal[scope]) data.journal[scope] = {};
+    data.journal[scope][key] = journalArea.value;
+    save();
+  });
+
+  // ---------- Time elapsed / left in the current day / month / year ----------
+  function fmtHM(ms) {
+    const mins = Math.max(0, Math.round(ms / 60000));
+    const h = Math.floor(mins / 60), m = mins % 60;
+    if (h > 0 && m > 0) return h + "h " + m + "m";
+    if (h > 0) return h + "h";
+    return m + "m";
+  }
+  function renderTimeStrip() {
+    if (scope === "custom") return;
+    const liveNow = new Date();
+    let start, end;
+    if (scope === "daily") {
+      start = new Date(selectedDate);
+      end = new Date(selectedDate); end.setDate(end.getDate() + 1);
+    } else if (scope === "monthly") {
+      start = new Date(viewYear, viewMonth, 1);
+      end = new Date(viewYear, viewMonth + 1, 1);
+    } else {
+      start = new Date(viewYear, 0, 1);
+      end = new Date(viewYear + 1, 0, 1);
+    }
+    const total = end.getTime() - start.getTime();
+    const elapsed = Math.min(Math.max(liveNow.getTime() - start.getTime(), 0), total);
+    const leftMs = total - elapsed;
+    const pct = Math.round(elapsed / total * 100);
+    timeFill.style.width = pct + "%";
+
+    let elapsedText, leftText;
+    if (scope === "daily") {
+      elapsedText = "🕒 " + fmtHM(elapsed) + " elapsed";
+      leftText = fmtHM(leftMs) + " left";
+    } else {
+      const dayMs = 86400000;
+      const totalDays = Math.round(total / dayMs);
+      const elapsedDays = Math.floor(elapsed / dayMs);
+      const leftDays = Math.ceil(leftMs / dayMs);
+      elapsedText = "🕒 " + elapsedDays + " of " + totalDays + " days elapsed";
+      leftText = leftDays + (leftDays === 1 ? " day left" : " days left");
+    }
+    // friendly wording for periods that are fully past or entirely upcoming
+    if (pct >= 100) { leftText = (scope === "daily" ? "day" : scope === "monthly" ? "month" : "year") + " complete"; }
+    if (pct <= 0) { elapsedText = "🕒 not started yet"; }
+
+    timeElapsed.textContent = elapsedText;
+    timeLeft.textContent = leftText;
   }
 
   function editGoal(g, txtEl, rerender) {
@@ -737,10 +898,9 @@
     return d.toLocaleString(undefined, { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true });
   }
   function humanDur(ms) {
-    const days = Math.max(0, Math.ceil(ms / 86400000));
-    if (days < 1) return "less than a day";
-    if (days === 1) return "1 day";
-    if (days < 45) return days + " days";
+    if (ms < 86400000) return fmtHM(ms);            // under a day → hours / minutes
+    const days = Math.round(ms / 86400000);
+    if (days < 45) return days + (days === 1 ? " day" : " days");
     const months = Math.round(days / 30);
     if (months < 12) return months + " month" + (months > 1 ? "s" : "");
     const years = days / 365;
@@ -785,14 +945,30 @@
     const st = timelineStatus(tl);
     const pill = document.createElement("div"); pill.className = "tl-pill " + st.cls; pill.textContent = st.label;
 
-    const del = document.createElement("button"); del.className = "tl-del"; del.innerHTML = "✕"; del.title = "Delete timeline";
-    del.addEventListener("click", () => {
+    // three-dot menu: Edit / Delete
+    const menuWrap = document.createElement("div"); menuWrap.className = "tl-menu";
+    const menuBtn = document.createElement("button"); menuBtn.className = "tl-menu-btn"; menuBtn.innerHTML = "⋮"; menuBtn.title = "Options";
+    const pop = document.createElement("div"); pop.className = "tl-menu-pop";
+    const editItem = document.createElement("button"); editItem.className = "tl-menu-item"; editItem.textContent = "✏️  Edit timeline";
+    const delItem = document.createElement("button"); delItem.className = "tl-menu-item danger"; delItem.textContent = "🗑  Delete timeline";
+    pop.appendChild(editItem); pop.appendChild(delItem);
+    menuWrap.appendChild(menuBtn); menuWrap.appendChild(pop);
+
+    menuBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const wasOpen = pop.classList.contains("open");
+      closeAllTlMenus();
+      if (!wasOpen) pop.classList.add("open");
+    });
+    editItem.addEventListener("click", () => { closeAllTlMenus(); openTlFormForEdit(tl); });
+    delItem.addEventListener("click", () => {
+      closeAllTlMenus();
       if (confirm('Delete "' + (tl.title || "this timeline") + '" and all its goals?')) {
         data.custom = data.custom.filter(x => x.id !== tl.id); save(); renderGoals();
       }
     });
 
-    head.appendChild(info); head.appendChild(pill); head.appendChild(del);
+    head.appendChild(info); head.appendChild(pill); head.appendChild(menuWrap);
     card.appendChild(head);
 
     const total = tl.goals.length;
@@ -802,8 +978,24 @@
     const fill = document.createElement("div"); fill.style.width = pct + "%"; prog.appendChild(fill);
     card.appendChild(prog);
     const meta = document.createElement("div"); meta.className = "tl-meta";
-    meta.textContent = (total ? (done + "/" + total + " done · " + pct + "%") : "No goals yet") + (st.sub ? "  ·  " + st.sub : "");
+    meta.textContent = total ? (done + "/" + total + " done · " + pct + "%") : "No goals yet";
     card.appendChild(meta);
+
+    // Time elapsed / left across the timeline's own date range
+    const tNow = Date.now(), tStart = new Date(tl.start).getTime(), tEnd = new Date(tl.end).getTime();
+    const tTotal = Math.max(1, tEnd - tStart);
+    const tElapsed = Math.min(Math.max(tNow - tStart, 0), tTotal);
+    const tPct = Math.round(tElapsed / tTotal * 100);
+    const tprog = document.createElement("div"); tprog.className = "tl-progress time";
+    const tfill = document.createElement("div"); tfill.style.width = tPct + "%"; tprog.appendChild(tfill);
+    card.appendChild(tprog);
+    const tmeta = document.createElement("div"); tmeta.className = "tl-meta";
+    let elapsedTxt, leftTxt;
+    if (tNow < tStart) { elapsedTxt = "not started"; leftTxt = "starts in " + humanDur(tStart - tNow); }
+    else if (tNow > tEnd) { elapsedTxt = humanDur(tTotal) + " elapsed"; leftTxt = "complete"; }
+    else { elapsedTxt = humanDur(tElapsed) + " elapsed"; leftTxt = humanDur(tEnd - tNow) + " left"; }
+    tmeta.textContent = "🕒 " + elapsedTxt + "  ·  " + leftTxt + "  (" + tPct + "%)";
+    card.appendChild(tmeta);
 
     const ul = document.createElement("ul"); ul.className = "tl-goals";
     tl.goals.forEach((g, idx) => {
@@ -834,6 +1026,15 @@
     add.appendChild(inp); add.appendChild(addBtn);
     card.appendChild(add);
 
+    // per-timeline journal
+    const journal = document.createElement("textarea");
+    journal.className = "tl-journal";
+    journal.rows = 3;
+    journal.placeholder = "Journal for this timeline…";
+    journal.value = tl.journal || "";
+    journal.addEventListener("input", () => { tl.journal = journal.value; save(); });
+    card.appendChild(journal);
+
     return card;
   }
 
@@ -849,12 +1050,24 @@
   // New-timeline form
   const newTlBtn = document.getElementById("newTlBtn");
   const newTlForm = document.getElementById("newTlForm");
+  const tlFormTitle = document.getElementById("tlFormTitle");
   const tlTitle = document.getElementById("tlTitle");
   const tlStart = document.getElementById("tlStart");
   const tlEnd = document.getElementById("tlEnd");
   const tlErr = document.getElementById("tlErr");
+  const tlCreateBtn = document.getElementById("tlCreate");
+  let editingTlId = null;                          // null → creating; else editing that timeline
+
+  // close any open three-dot menu on an outside click
+  function closeAllTlMenus() {
+    document.querySelectorAll(".tl-menu-pop.open").forEach(p => p.classList.remove("open"));
+  }
+  document.addEventListener("click", closeAllTlMenus);
 
   function openTlForm() {
+    editingTlId = null;
+    tlFormTitle.textContent = "New timeline";
+    tlCreateBtn.textContent = "Create timeline";
     newTlForm.classList.add("open");
     newTlBtn.style.display = "none";
     const s = new Date(); s.setMinutes(0, 0, 0); s.setHours(s.getHours() + 1);
@@ -864,15 +1077,39 @@
     tlTitle.value = ""; tlErr.textContent = "";
     tlTitle.focus();
   }
-  function closeTlForm() { newTlForm.classList.remove("open"); newTlBtn.style.display = "block"; tlErr.textContent = ""; }
+  function openTlFormForEdit(tl) {
+    editingTlId = tl.id;
+    tlFormTitle.textContent = "Edit timeline";
+    tlCreateBtn.textContent = "Save changes";
+    newTlForm.classList.add("open");
+    newTlBtn.style.display = "none";
+    tlTitle.value = tl.title && tl.title !== "Untitled timeline" ? tl.title : "";
+    tlStart.value = tl.start;
+    tlEnd.value = tl.end;
+    tlErr.textContent = "";
+    newTlForm.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    tlTitle.focus();
+  }
+  function closeTlForm() {
+    editingTlId = null;
+    newTlForm.classList.remove("open");
+    newTlBtn.style.display = "block";
+    tlErr.textContent = "";
+  }
 
   newTlBtn.addEventListener("click", openTlForm);
   document.getElementById("tlCancel").addEventListener("click", closeTlForm);
-  document.getElementById("tlCreate").addEventListener("click", () => {
+  tlCreateBtn.addEventListener("click", () => {
     const s = tlStart.value, e = tlEnd.value;
     if (!s || !e) { tlErr.textContent = "Please pick both a start and end date & time."; return; }
     if (new Date(e).getTime() <= new Date(s).getTime()) { tlErr.textContent = "The end must be after the start."; return; }
-    data.custom.push({ id: uid(), title: tlTitle.value.trim() || "Untitled timeline", start: s, end: e, goals: [] });
+    const title = tlTitle.value.trim() || "Untitled timeline";
+    if (editingTlId) {
+      const tl = data.custom.find(x => x.id === editingTlId);
+      if (tl) { tl.title = title; tl.start = s; tl.end = e; }
+    } else {
+      data.custom.push({ id: uid(), title, start: s, end: e, goals: [] });
+    }
     save(); closeTlForm(); renderGoals();
   });
 
@@ -935,6 +1172,41 @@
     thVal.textContent = settings.threshold + "%"; saveSettings(); renderCalendar();
   });
 
+  // ---------- Reset all data (type-to-confirm) ----------
+  const resetBtn = document.getElementById("resetBtn");
+  const resetModal = document.getElementById("resetModal");
+  const resetInput = document.getElementById("resetInput");
+  const resetConfirm = document.getElementById("resetConfirm");
+  const resetCancel = document.getElementById("resetCancel");
+
+  function openResetModal() {
+    settingsPop.classList.remove("open");
+    settingsBtn.classList.remove("on");
+    resetInput.value = "";
+    resetConfirm.disabled = true;
+    resetModal.classList.add("show");
+    resetInput.focus();
+  }
+  function closeResetModal() { resetModal.classList.remove("show"); }
+
+  resetBtn.addEventListener("click", (e) => { e.stopPropagation(); openResetModal(); });
+  resetInput.addEventListener("input", () => {
+    resetConfirm.disabled = resetInput.value.trim().toLowerCase() !== "confirm";
+  });
+  resetInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !resetConfirm.disabled) resetConfirm.click();
+    if (e.key === "Escape") closeResetModal();
+  });
+  resetCancel.addEventListener("click", closeResetModal);
+  resetModal.addEventListener("click", (e) => { if (e.target === resetModal) closeResetModal(); });
+  resetConfirm.addEventListener("click", () => {
+    if (resetInput.value.trim().toLowerCase() !== "confirm") return;
+    data = emptyData();                 // wipe all goals + timelines
+    save();                             // persist locally, and push empty state to the server if signed in
+    closeResetModal();
+    renderAll();
+  });
+
   // ---------- Export / Import ----------
   document.getElementById("exportBtn").addEventListener("click", () => {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -952,9 +1224,8 @@
       try {
         const parsed = JSON.parse(reader.result);
         if (parsed && parsed.daily && parsed.monthly && parsed.yearly) {
-          if (!Array.isArray(parsed.custom)) parsed.custom = [];
           if (confirm("Import will replace your current goals. Continue?")) {
-            data = parsed; save(); renderAll();
+            data = normalize(parsed); save(); renderAll();
           }
         } else alert("That file doesn't look like a valid backup.");
       } catch (err) { alert("Could not read that file."); }
@@ -971,16 +1242,19 @@
   // ============================================================
   const JWT_KEY = "kairos_jwt";
   const MIGRATED_KEY = "kairos_legacy_migrated";
+  const MODE_KEY = "kairos_mode";                  // "guest" when using guest mode
   let authToken = localStorage.getItem(JWT_KEY) || null;
   let currentUser = null;
   let googleClientId = null;
+  let isGuest = false;
 
   const authGate   = document.getElementById("authGate");
   const gsiButton  = document.getElementById("gsiButton");
-  const userChip   = document.getElementById("userChip");
-  const userAvatar = document.getElementById("userAvatar");
-  const userName   = document.getElementById("userName");
-  const signOutBtn = document.getElementById("signOutBtn");
+  const guestBtn   = document.getElementById("guestBtn");
+  const popAvatar  = document.getElementById("popAvatar");
+  const popName    = document.getElementById("popName");
+  const popSub     = document.getElementById("popSub");
+  const popAuthBtn = document.getElementById("popAuthBtn");
   const syncBadge  = document.getElementById("syncBadge");
   const syncText   = document.getElementById("syncText");
 
@@ -1070,30 +1344,70 @@
   }
 
   // --- session UI ---
+  // Reflect the current account in the settings popover
   function showUser(user) {
     currentUser = user;
-    if (user.picture) { userAvatar.src = user.picture; userAvatar.style.display = ""; }
-    else userAvatar.style.display = "none";
-    userName.textContent = user.name || user.email || "Account";
-    userChip.style.display = "flex";
+    if (user.picture) { popAvatar.src = user.picture; popAvatar.style.display = ""; }
+    else popAvatar.style.display = "none";
+    popName.textContent = user.name || user.email || "Account";
+    popSub.textContent = user.email || "Signed in — synced to your account";
+    popAuthBtn.textContent = "Sign out";
+    popAuthBtn.className = "pop-acct-btn";
+  }
+  function showGuest() {
+    popAvatar.style.display = "none";
+    popName.textContent = "Guest";
+    popSub.textContent = "Saved only on this device";
+    popAuthBtn.textContent = "Sign in with Google";
+    popAuthBtn.className = "pop-acct-btn primary";   // guest can upgrade to a synced account
+    syncBadge.style.display = "inline-flex";
+    syncBadge.className = "sync-badge local";
+    syncText.textContent = "On this device";
   }
   function hideGate() { authGate.classList.remove("show"); }
   function showGate() {
     authGate.classList.add("show");
-    userChip.style.display = "none";
     syncBadge.style.display = "none";
     renderGoogleButton();
   }
+
+  // Guest mode: no account, goals persisted only in this browser's localStorage.
+  function enterGuest() {
+    isGuest = true;
+    authToken = null;
+    localStorage.setItem(MODE_KEY, "guest");
+    cacheKey = STORE_KEY;                       // guest data lives in the local store
+    data = load();
+    hideGate();
+    showGuest();
+    renderAll();
+  }
+
   function signOut() {
-    authToken = null; currentUser = null;
+    authToken = null; currentUser = null; isGuest = false;
     localStorage.removeItem(JWT_KEY);
+    localStorage.removeItem(MODE_KEY);
     cacheKey = STORE_KEY;
     if (window.google && google.accounts && google.accounts.id) {
       try { google.accounts.id.disableAutoSelect(); } catch (e) {}
     }
     showGate();
   }
-  signOutBtn.addEventListener("click", signOut);
+
+  // Sign-in / sign-out now lives in the settings popover
+  popAuthBtn.addEventListener("click", () => {
+    settingsPop.classList.remove("open");
+    settingsBtn.classList.remove("on");
+    if (isGuest) {
+      // "Sign in" from guest → show the gate but keep local data intact
+      isGuest = false;
+      localStorage.removeItem(MODE_KEY);
+      showGate();
+    } else {
+      signOut();
+    }
+  });
+  guestBtn.addEventListener("click", enterGuest);
 
   // --- Google Identity Services ---
   function whenGoogleReady(cb) {
@@ -1124,7 +1438,9 @@
       if (!res.ok) throw new Error("login failed");
       const body = await res.json();               // { token, user }
       authToken = body.token;
+      isGuest = false;
       localStorage.setItem(JWT_KEY, authToken);
+      localStorage.removeItem(MODE_KEY);
       showUser(body.user);
       hideGate();
       const claims = decodeJwt(authToken);
@@ -1156,12 +1472,22 @@
       localStorage.removeItem(JWT_KEY);
       authToken = null;
     }
+
+    // Returning guest → straight back into local-only mode, no gate.
+    if (localStorage.getItem(MODE_KEY) === "guest") {
+      enterGuest();
+      return;
+    }
+
     showGate();
   }
 
   // Initial paint (empty/local) sits behind the gate until sign-in completes.
   renderAll();
   initAuth();
+
+  // Keep the time-elapsed / time-left meter current without a user action.
+  setInterval(renderTimeStrip, 60000);
 })();
 </script>
 </body>
