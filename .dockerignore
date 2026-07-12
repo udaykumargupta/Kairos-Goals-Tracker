@@ -1,0 +1,8 @@
+# Build output & local tooling — not needed in the image
+backend/target/
+.git/
+.idea/
+.claude/
+.env
+*.log
+**/.DS_Store

@@ -1,0 +1,25 @@
+# Render Blueprint — deploy Kairos as a Docker web service.
+# In Render: New → Blueprint → pick this repo. It reads this file and prompts
+# for the values marked `sync: false`.
+services:
+  - type: web
+    name: kairos
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /api/public/config
+    envVars:
+      # Google OAuth Web Client ID (public value)
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      # App JWT signing secret — Render generates a strong random value
+      - key: JWT_SECRET
+        generateValue: true
+      # Neon PostgreSQL connection (see DEPLOY.md for how to fill these)
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
