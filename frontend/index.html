@@ -199,6 +199,18 @@
   .badge.won { background: var(--accent-2); }
   .badge.missed { background: var(--danger); }
   .day.selected .count { color: rgba(255,255,255,.85); }
+  .day-bookmark {
+    position: absolute; bottom: 3px; left: 5px; background: transparent; border: none; padding: 0;
+    font-size: 12px; line-height: 1; cursor: pointer; color: var(--muted);
+    opacity: 0; transition: opacity .12s, transform .12s, color .12s;
+  }
+  .day:hover .day-bookmark { opacity: .45; }
+  .day-bookmark:hover { transform: scale(1.25); }
+  .day-bookmark.on { opacity: 1; color: #f2b705; }
+  .day.selected .day-bookmark { color: rgba(255,255,255,.7); }
+  .day.selected .day-bookmark.on { color: #ffd54a; }
+  body.readonly .day:hover .day-bookmark:not(.on) { opacity: 0; }
+  body.readonly .day-bookmark { pointer-events: none; }
 
   /* Goals panel */
   .tabs { display: flex; padding: 16px 16px 0; gap: 6px; }
@@ -213,6 +225,10 @@
   .panel-head { padding: 18px 20px 4px; }
   .panel-head .scope-label { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .6px; }
   .panel-head h2 { margin: 2px 0 0; font-size: 19px; letter-spacing: -.3px; }
+  .scope-title-row { display: flex; align-items: center; gap: 10px; }
+  .bookmark-btn { background: transparent; border: none; cursor: pointer; font-size: 20px; line-height: 1; padding: 0; color: var(--line); transition: color .15s, transform .15s; }
+  .bookmark-btn:hover { color: #f2b705; transform: scale(1.1); }
+  .bookmark-btn.on { color: #f2b705; }
 
   .progress-wrap { padding: 12px 20px 6px; }
   .progress-bar { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; border: none; }
@@ -555,7 +571,10 @@
       </div>
       <div class="panel-head">
         <div class="scope-label" id="scopeLabel">Goals for</div>
-        <h2 id="scopeTitle">Today</h2>
+        <div class="scope-title-row">
+          <h2 id="scopeTitle">Today</h2>
+          <button class="bookmark-btn" id="bookmarkBtn" title="Bookmark this day" style="display:none">★</button>
+        </div>
       </div>
 
       <!-- Standard view (day / month / year) -->
@@ -728,7 +747,7 @@
   }
   function saveSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }
 
-  function emptyData() { return { daily: {}, monthly: {}, yearly: {}, custom: [], journal: { daily: {}, monthly: {}, yearly: {} } }; }
+  function emptyData() { return { daily: {}, monthly: {}, yearly: {}, custom: [], journal: { daily: {}, monthly: {}, yearly: {} }, bookmarks: {} }; }
   function normalize(raw) {
     let d = emptyData();
     if (raw && typeof raw === "object") d = Object.assign(d, raw);
@@ -740,6 +759,7 @@
     if (!d.journal.daily) d.journal.daily = {};
     if (!d.journal.monthly) d.journal.monthly = {};
     if (!d.journal.yearly) d.journal.yearly = {};
+    if (!d.bookmarks || typeof d.bookmarks !== "object") d.bookmarks = {};
     return d;
   }
   function load() {
@@ -846,6 +866,17 @@
         el.appendChild(count);
       }
 
+      if (!c.other) {
+        const bmKey = dayKey(cellDate);
+        const bookmarked = !!(data.bookmarks && data.bookmarks[bmKey]);
+        const star = document.createElement("button");
+        star.className = "day-bookmark" + (bookmarked ? " on" : "");
+        star.textContent = "★";
+        star.title = bookmarked ? "Remove bookmark" : "Bookmark this day";
+        star.addEventListener("click", (e) => { e.stopPropagation(); toggleBookmark(bmKey); });
+        el.appendChild(star);
+      }
+
       el.addEventListener("click", () => {
         selectedDate = cellDate;
         if (c.other) { viewYear = cellDate.getFullYear(); viewMonth = cellDate.getMonth(); }
@@ -858,8 +889,31 @@
     });
   }
 
+  // ---------- Bookmarks (star a date) ----------
+  function toggleBookmark(key) {
+    if (readOnly) return;
+    if (!data.bookmarks) data.bookmarks = {};
+    if (data.bookmarks[key]) delete data.bookmarks[key];
+    else data.bookmarks[key] = true;
+    save();
+    renderCalendar();
+    updateBookmarkBtn();
+  }
+  function updateBookmarkBtn() {
+    if (scope === "daily" && !readOnly) {
+      bookmarkBtn.style.display = "";
+      const on = !!(data.bookmarks && data.bookmarks[dayKey(selectedDate)]);
+      bookmarkBtn.classList.toggle("on", on);
+      bookmarkBtn.title = on ? "Remove bookmark" : "Bookmark this day";
+    } else {
+      bookmarkBtn.style.display = "none";
+    }
+  }
+
   // ---------- Goals render ----------
   const goalsEl = document.getElementById("goals");
+  const bookmarkBtn = document.getElementById("bookmarkBtn");
+  bookmarkBtn.addEventListener("click", () => toggleBookmark(dayKey(selectedDate)));
   const scopeTitle = document.getElementById("scopeTitle");
   const scopeLabel = document.getElementById("scopeLabel");
   const progressFill = document.getElementById("progressFill");
@@ -885,6 +939,7 @@
   const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   function renderGoals() {
+    updateBookmarkBtn();
     if (scope === "custom") {
       stdView.style.display = "none";
       customView.style.display = "flex";
