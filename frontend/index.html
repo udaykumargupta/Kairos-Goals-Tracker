@@ -113,8 +113,22 @@
   .switch input:checked + .slider { background: var(--accent); }
   .switch input:checked + .slider::before { transform: translateX(17px); }
   .pop-help { font-size: 11.5px; color: var(--muted); margin: 8px 0 0; line-height: 1.5; }
-  .pop-help .tick { color: var(--accent-2); font-weight: 800; }
-  .pop-help .cross { color: var(--danger); font-weight: 800; }
+  .pop-help .tick, .info-tip .tick { color: var(--accent-2); font-weight: 800; }
+  .pop-help .cross, .info-tip .cross { color: var(--danger); font-weight: 800; }
+
+  /* Compact heading with an (i) info icon whose tooltip holds the explanation */
+  .pop-h3-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .info-wrap { position: relative; flex: none; display: inline-flex; }
+  .info-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 13px; line-height: 1; padding: 2px; border-radius: 50%; }
+  .info-btn:hover { color: var(--accent); }
+  .info-tip {
+    position: absolute; top: calc(100% + 6px); right: 0; width: 210px; z-index: 50;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow);
+    padding: 10px 12px; font-size: 11.5px; color: var(--muted); line-height: 1.5; font-weight: 400;
+    text-transform: none; letter-spacing: normal; display: none;
+  }
+  .info-wrap:hover .info-tip { display: block; }   /* desktop: reveal on hover */
+  .info-tip.show { display: block; }               /* touch: toggled by tap */
 
   .layout { flex: 1; min-height: 0; display: grid; grid-template-columns: 1.15fr .85fr; gap: 20px; align-items: stretch; }
 
@@ -220,6 +234,14 @@
   }
   .badge.won { background: var(--accent-2); }
   .badge.missed { background: var(--danger); }
+  /* Mobile: drop the filled circle — show a small, clean coloured ✓ / ✗ glyph only.
+     Placed after the base rules so it wins by source order. */
+  @media (max-width: 860px) {
+    .badge { width: auto; height: auto; top: 3px; left: 5px; font-size: 11px; font-weight: 900; box-shadow: none; border-radius: 0; }
+    .badge.won { background: none; color: var(--accent-2); }
+    .badge.missed { background: none; color: var(--danger); }
+    .count { display: none; }   /* hide the "done/total" count on mobile (dots stay) */
+  }
   .day.selected .count { color: rgba(255,255,255,.85); }
   .day-bookmark {
     position: absolute; bottom: 3px; left: 5px; background: transparent; border: none; padding: 0;
@@ -528,7 +550,12 @@
           <input type="file" id="avatarInput" accept="image/*" style="display:none" />
           <button class="pop-acct-btn" id="popAuthBtn">Sign in</button>
           <div class="pop-divider"></div>
-          <h3>Day completion marks</h3>
+          <h3 class="pop-h3-row">Day completion marks
+            <span class="info-wrap">
+              <button class="info-btn" id="markInfoBtn" type="button" aria-label="How completion marks work">ⓘ</button>
+              <span class="info-tip" id="markInfoTip">A day that reaches the threshold gets a <span class="tick">✓</span>. A past day that ends below it gets a <span class="cross">✗</span>. Today and future days are never crossed.</span>
+            </span>
+          </h3>
           <div class="pop-row">
             <span>Mark completed days</span>
             <label class="switch"><input type="checkbox" id="setMark" /><span class="slider"></span></label>
@@ -537,7 +564,6 @@
             <span>Success threshold: <b id="thVal">70%</b></span>
             <input type="range" id="setThreshold" min="10" max="100" step="5" />
           </div>
-          <p class="pop-help">A day that reaches the threshold gets a <span class="tick">✓</span>. A past day that ends below it gets a <span class="cross">✗</span>. Today and future days are never crossed.</p>
           <div class="pop-divider"></div>
           <h3>Share progress</h3>
           <div id="shareSignedOut" class="pop-help">Sign in with Google to share your progress with a link.</div>
@@ -1471,6 +1497,11 @@
     settings.threshold = parseInt(setThreshold.value, 10);
     thVal.textContent = settings.threshold + "%"; saveSettings(); renderCalendar();
   });
+
+  // Info tooltip: hover shows it on desktop (CSS); tap toggles it on touch
+  const markInfoBtn = document.getElementById("markInfoBtn");
+  const markInfoTip = document.getElementById("markInfoTip");
+  markInfoBtn.addEventListener("click", (e) => { e.stopPropagation(); markInfoTip.classList.toggle("show"); });
 
   // ---------- Reset all data (type-to-confirm) ----------
   const resetBtn = document.getElementById("resetBtn");
