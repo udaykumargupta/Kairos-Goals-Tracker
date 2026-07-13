@@ -314,6 +314,17 @@
   .empty { text-align: center; color: var(--muted); font-size: 14px; padding: 30px 20px; }
   .empty .big { font-size: 30px; margin-bottom: 8px; }
 
+  /* Copy unfinished goals to next day — small button at bottom-right of the list */
+  .goals-actions { display: flex; justify-content: flex-end; padding: 2px 18px 0; }
+  .copy-next-btn {
+    padding: 5px 11px; border-radius: 9px; border: 1px solid var(--line); cursor: pointer;
+    background: var(--panel-2); color: var(--muted); font-size: 12px; font-weight: 600;
+    transition: .15s; white-space: nowrap;
+  }
+  .copy-next-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .copy-next-btn.copied { color: var(--accent-2); border-color: var(--accent-2); }
+  body.readonly .goals-actions { display: none !important; }
+
   .add-row { display: flex; gap: 8px; padding: 12px 18px 14px; border-top: 1px solid var(--line); margin-top: 6px; }
   .add-row input {
     flex: 1; padding: 12px 14px; border-radius: 11px; border: 1px solid var(--line);
@@ -642,6 +653,9 @@
           </div>
         </div>
         <ul class="goals" id="goals"></ul>
+        <div class="goals-actions" id="goalsActions" style="display:none;">
+          <button id="copyNextDayBtn" class="copy-next-btn" type="button" title="Copy unfinished goals to the next day">⤳ Copy unfinished to next day</button>
+        </div>
         <div class="add-row">
           <input id="goalInput" type="text" placeholder="Add a goal and press Enter…" maxlength="200" />
           <button id="addBtn">Add</button>
@@ -787,11 +801,12 @@
   let scope = "daily";                            // daily | monthly | yearly
 
   function loadSettings() {
+    const defaults = { mark: true, threshold: 70 };
     try {
       const raw = localStorage.getItem(SETTINGS_KEY);
-      if (raw) return Object.assign({ mark: true, threshold: 70 }, JSON.parse(raw));
+      if (raw) return Object.assign(defaults, JSON.parse(raw));
     } catch (e) {}
-    return { mark: true, threshold: 70 };
+    return defaults;
   }
   function saveSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }
 
@@ -971,6 +986,8 @@
   const timeElapsed = document.getElementById("timeElapsed");
   const timeLeft = document.getElementById("timeLeft");
   const stdView = document.getElementById("stdView");
+  const goalsActions = document.getElementById("goalsActions");
+  const copyNextDayBtn = document.getElementById("copyNextDayBtn");
   const customView = document.getElementById("customView");
   const journalArea = document.getElementById("journalArea");
 
@@ -1044,6 +1061,12 @@
     progressFill.style.width = pct + "%";
     progressPct.textContent = pct + "%";
     progressLabel.textContent = total ? (done + " of " + total + " done") : "No goals yet";
+
+    // "Copy unfinished to next day" — only for Day scope, when there's something to copy
+    const canCopy = scope === "daily" && !readOnly && (total - done) > 0;
+    goalsActions.style.display = canCopy ? "flex" : "none";
+    copyNextDayBtn.classList.remove("copied");
+    copyNextDayBtn.textContent = "⤳ Copy unfinished to next day";
 
     renderTimeStrip();
     renderJournal();
@@ -1185,6 +1208,16 @@
   }
   document.getElementById("addBtn").addEventListener("click", addGoal);
   goalInput.addEventListener("keydown", e => { if (e.key === "Enter") addGoal(); });
+
+  // Copy this day's unfinished goals into the next day (originals stay put)
+  copyNextDayBtn.addEventListener("click", () => {
+    const n = copyUnfinishedToNextDay();     // save + renderAll happen inside
+    if (n > 0) {
+      copyNextDayBtn.classList.add("copied");
+      copyNextDayBtn.textContent = "✓ Copied " + n + " to next day";
+      setTimeout(() => { if (scope === "daily") renderGoals(); }, 1600);
+    }
+  });
 
   // ---------- Tabs ----------
   const tabs = [...document.querySelectorAll(".tab")];
@@ -1498,10 +1531,14 @@
     thVal.textContent = settings.threshold + "%"; saveSettings(); renderCalendar();
   });
 
-  // Info tooltip: hover shows it on desktop (CSS); tap toggles it on touch
-  const markInfoBtn = document.getElementById("markInfoBtn");
-  const markInfoTip = document.getElementById("markInfoTip");
-  markInfoBtn.addEventListener("click", (e) => { e.stopPropagation(); markInfoTip.classList.toggle("show"); });
+  // Info tooltips: hover shows on desktop (CSS); tap toggles on touch (any .info-btn)
+  document.querySelectorAll(".info-btn").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const tip = btn.parentElement.querySelector(".info-tip");
+      if (tip) tip.classList.toggle("show");
+    });
+  });
 
   // ---------- Reset all data (type-to-confirm) ----------
   const resetBtn = document.getElementById("resetBtn");
@@ -1578,6 +1615,32 @@
     if (navigator.clipboard) navigator.clipboard.writeText(url).then(done).catch(() => { shareLinkInput.select(); });
     else { shareLinkInput.select(); done(); }
   });
+
+  // ---------- Copy unfinished goals to the next day ----------
+  // Manual (button-triggered): COPY the selected day's incomplete goals into the
+  // next day as fresh, independent items. Originals stay put. Skips any goal whose
+  // text already exists on the next day, so repeated clicks don't pile up dupes.
+  // Returns the number of goals copied.
+  function copyUnfinishedToNextDay() {
+    if (scope !== "daily") return 0;
+    const list = data.daily[dayKey(selectedDate)] || [];
+    const undone = list.filter(g => !g.done);
+    if (undone.length === 0) return 0;
+    const next = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate() + 1);
+    const nextKey = dayKey(next);
+    if (!data.daily[nextKey]) data.daily[nextKey] = [];
+    const existing = new Set(data.daily[nextKey].map(g => (g.text || "").trim().toLowerCase()));
+    let copied = 0;
+    undone.forEach(g => {
+      const t = (g.text || "").trim();
+      if (existing.has(t.toLowerCase())) return;        // already there — skip
+      data.daily[nextKey].push({ id: uid(), text: g.text, done: false });
+      existing.add(t.toLowerCase());
+      copied++;
+    });
+    if (copied) { save(); renderAll(); }
+    return copied;
+  }
 
   // ---------- Render all ----------
   function renderAll() { renderCalendar(); renderGoals(); }
