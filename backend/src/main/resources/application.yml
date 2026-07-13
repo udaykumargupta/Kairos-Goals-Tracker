@@ -1,5 +1,9 @@
 server:
   port: ${PORT:8080}
+  # Behind a platform proxy (Render/Railway), trust X-Forwarded-* so the app sees its
+  # real public scheme/host. Without this, Spring misjudges its own origin and same-origin
+  # API calls get wrongly treated as cross-origin and blocked by CORS (403 on sign-in).
+  forward-headers-strategy: framework
 
 spring:
   application:

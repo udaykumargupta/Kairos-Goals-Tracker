@@ -2,6 +2,7 @@ package com.kairos.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +31,10 @@ public class SecurityConfig {
 
     private final JwtService jwtService;
     private final ObjectMapper objectMapper;
+
+    /** Extra allowed origins (comma-separated). Optional — set CORS_ALLOWED_ORIGINS for custom domains. */
+    @Value("${kairos.cors.allowed-origins:}")
+    private String extraAllowedOrigins;
 
     public SecurityConfig(JwtService jwtService, ObjectMapper objectMapper) {
         this.jwtService = jwtService;
@@ -66,12 +72,23 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // Same-origin in production (Spring serves the app), but allow common local dev origins.
-        config.setAllowedOrigins(List.of(
+        // The app is served same-origin (Spring serves the frontend), so same-origin API calls
+        // skip CORS. These patterns cover local dev plus the hosting providers, so cross-origin
+        // checks still pass on any Render/Railway deploy. Use patterns (not plain origins) for
+        // the wildcards; safe without credentials since auth is a bearer token, not a cookie.
+        List<String> patterns = new ArrayList<>(List.of(
                 "http://localhost:8080", "http://127.0.0.1:8080",
                 "http://localhost:5500", "http://127.0.0.1:5500",
-                "http://localhost:3000"
+                "http://localhost:3000",
+                "https://*.onrender.com", "https://*.up.railway.app"
         ));
+        if (extraAllowedOrigins != null && !extraAllowedOrigins.isBlank()) {
+            for (String origin : extraAllowedOrigins.split(",")) {
+                String trimmed = origin.trim();
+                if (!trimmed.isEmpty()) patterns.add(trimmed);
+            }
+        }
+        config.setAllowedOriginPatterns(patterns);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
