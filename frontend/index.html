@@ -315,14 +315,34 @@
   .empty .big { font-size: 30px; margin-bottom: 8px; }
 
   /* Copy unfinished goals to next day — small button at bottom-right of the list */
-  .goals-actions { display: flex; justify-content: flex-end; padding: 2px 18px 0; }
+  .goals-actions { display: flex; justify-content: flex-end; padding: 4px 18px 0; }
   .copy-next-btn {
-    padding: 5px 11px; border-radius: 9px; border: 1px solid var(--line); cursor: pointer;
-    background: var(--panel-2); color: var(--muted); font-size: 12px; font-weight: 600;
-    transition: .15s; white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
+    padding: 7px 14px 7px 9px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--panel-2); color: var(--text);
+    font-size: 12.5px; font-weight: 650; font-family: inherit; letter-spacing: .1px;
+    box-shadow: 0 1px 2px rgba(16,18,27,.05);
+    transition: transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s ease, background .18s ease, border-color .18s ease, color .18s ease;
   }
-  .copy-next-btn:hover { color: var(--accent); border-color: var(--accent); }
-  .copy-next-btn.copied { color: var(--accent-2); border-color: var(--accent-2); }
+  .copy-next-btn .cn-ico {
+    display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%;
+    background: var(--accent-soft); color: var(--accent); font-size: 12px; line-height: 1;
+    transition: transform .22s cubic-bezier(.34,1.56,.64,1), background .18s ease, color .18s ease;
+  }
+  .copy-next-btn:hover {
+    border-color: transparent; color: #fff;
+    background: linear-gradient(135deg, var(--accent) 0%, #8b6bff 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px -4px color-mix(in srgb, var(--accent) 55%, transparent);
+  }
+  .copy-next-btn:hover .cn-ico { background: rgba(255,255,255,.22); color: #fff; transform: translateX(3px); }
+  .copy-next-btn:active { transform: translateY(0) scale(.97); }
+  .copy-next-btn.copied {
+    border-color: transparent; color: #fff;
+    background: linear-gradient(135deg, var(--accent-2) 0%, #2fb8a0 100%);
+    box-shadow: 0 6px 18px -4px color-mix(in srgb, var(--accent-2) 55%, transparent);
+  }
+  .copy-next-btn.copied .cn-ico { background: rgba(255,255,255,.22); color: #fff; transform: none; }
   body.readonly .goals-actions { display: none !important; }
 
   .add-row { display: flex; gap: 8px; padding: 12px 18px 14px; border-top: 1px solid var(--line); margin-top: 6px; }
@@ -691,7 +711,7 @@
         </div>
         <ul class="goals" id="goals"></ul>
         <div class="goals-actions" id="goalsActions" style="display:none;">
-          <button id="copyNextDayBtn" class="copy-next-btn" type="button" title="Copy unfinished goals to the next day">⤳ Copy unfinished to next day</button>
+          <button id="copyNextDayBtn" class="copy-next-btn" type="button" title="Copy unfinished goals to the next day"><span class="cn-ico" aria-hidden="true">→</span><span class="cn-label">Next day</span></button>
         </div>
         <div class="add-row">
           <input id="goalInput" type="text" placeholder="Add a goal and press Enter…" maxlength="200" />
@@ -1049,6 +1069,8 @@
   const stdView = document.getElementById("stdView");
   const goalsActions = document.getElementById("goalsActions");
   const copyNextDayBtn = document.getElementById("copyNextDayBtn");
+  const cnIco = copyNextDayBtn.querySelector(".cn-ico");
+  const cnLabel = copyNextDayBtn.querySelector(".cn-label");
   const customView = document.getElementById("customView");
   const journalArea = document.getElementById("journalArea");
 
@@ -1127,7 +1149,8 @@
     const canCopy = scope === "daily" && !readOnly && (total - done) > 0;
     goalsActions.style.display = canCopy ? "flex" : "none";
     copyNextDayBtn.classList.remove("copied");
-    copyNextDayBtn.textContent = "⤳ Copy unfinished to next day";
+    cnIco.textContent = "→";
+    cnLabel.textContent = "Next day";
 
     renderTimeStrip();
     renderJournal();
@@ -1298,7 +1321,8 @@
     const n = copyUnfinishedToNextDay();     // save + renderAll happen inside
     if (n > 0) {
       copyNextDayBtn.classList.add("copied");
-      copyNextDayBtn.textContent = "✓ Copied " + n + " to next day";
+      cnIco.textContent = "✓";
+      cnLabel.textContent = "Copied";
       setTimeout(() => { if (scope === "daily") renderGoals(); }, 1600);
     }
   });
