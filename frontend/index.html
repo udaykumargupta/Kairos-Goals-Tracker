@@ -138,7 +138,7 @@
     display: flex; flex-direction: column; min-height: 0;
   }
   /* Calendar column sizes to its content (no big blank space); scrolls only if it can't fit */
-  .cal-col { align-self: start; max-height: 100%; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+  .cal-col { align-self: start; max-height: 100%; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
   .cal-col > .card { flex: none; }
 
   /* Quote of the day */
@@ -497,6 +497,38 @@
   /* Profile photo viewer */
   .photo-modal.show { display: flex; }
   #photoModalImg { max-width: min(80vw, 480px); max-height: 80vh; border-radius: 16px; box-shadow: var(--shadow); }
+
+  /* Scattered day photos (scrapbook collage) — tiles overlap and tilt like a pile of prints */
+  .photo-scatter { display: flex; flex-wrap: wrap; align-content: flex-start; padding: 2px 14px 6px; }
+  .photo-scatter:empty { display: none; }
+  .photo-sq {
+    position: relative; z-index: 1; width: 80px; height: 80px; margin: 6px -13px; border-radius: 8px;
+    background: #fff; border: 4px solid #fff; object-fit: cover; cursor: pointer;
+    box-shadow: 0 6px 16px -3px rgba(16,18,27,.45), 0 1px 3px rgba(16,18,27,.3);
+    transition: transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s ease;
+  }
+  .photo-sq:hover { transform: rotate(0deg) scale(1.2) !important; box-shadow: 0 18px 34px -8px rgba(16,18,27,.58); z-index: 90 !important; }
+  .photo-add {
+    position: relative; z-index: 2; width: 80px; height: 80px; margin: 6px; border-radius: 12px;
+    display: grid; place-items: center; cursor: pointer; font-size: 28px; font-weight: 300; padding: 0;
+    color: var(--muted); background: var(--panel-2); border: 2px dashed var(--line); font-family: inherit;
+    transition: .15s;
+  }
+  .photo-add:hover { color: var(--accent); border-color: var(--accent); transform: scale(1.06); }
+  body.readonly .photo-add { display: none !important; }
+
+  /* Lightbox (maximized posted photo) */
+  .lightbox-inner { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  #lightboxImg { max-width: min(90vw, 900px); max-height: 78vh; border-radius: 14px; box-shadow: var(--shadow); background: #fff; }
+  .lightbox-actions { display: flex; gap: 10px; }
+  .lightbox-del, .lightbox-close {
+    padding: 8px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,.25); cursor: pointer;
+    font-size: 13px; font-weight: 650; font-family: inherit; background: rgba(255,255,255,.12); color: #fff;
+    transition: .15s;
+  }
+  .lightbox-close:hover { background: rgba(255,255,255,.22); }
+  .lightbox-del:hover { background: var(--danger); border-color: var(--danger); }
+  body.readonly .lightbox-del { display: none !important; }
   .pop-acct-sub { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .pop-acct-btn { width: 100%; padding: 9px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer; transition: .15s; }
   .pop-acct-btn:hover { border-color: var(--accent); color: var(--accent); }
@@ -620,6 +652,9 @@
         <div class="quote-text" id="quoteText"></div>
         <div class="quote-author" id="quoteAuthor"></div>
       </div>
+      <!-- Scattered day photos fill the empty space below the quote -->
+      <div class="photo-scatter" id="photoScatter"></div>
+      <input type="file" id="photoInput" accept="image/*" multiple style="display:none" />
     </div>
 
     <!-- Goals -->
@@ -757,6 +792,17 @@
   <img id="photoModalImg" alt="Profile photo" />
 </div>
 
+<!-- Posted-photo lightbox (maximized view + delete) -->
+<div class="modal-overlay photo-modal" id="imgLightbox">
+  <div class="lightbox-inner" id="lightboxInner">
+    <img id="lightboxImg" alt="Photo" />
+    <div class="lightbox-actions">
+      <button id="lightboxDelete" class="lightbox-del" type="button">🗑 Remove</button>
+      <button id="lightboxClose" class="lightbox-close" type="button">✕ Close</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function () {
   "use strict";
@@ -823,7 +869,7 @@
   }
   function saveSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }
 
-  function emptyData() { return { daily: {}, monthly: {}, yearly: {}, custom: [], journal: { daily: {}, monthly: {}, yearly: {} }, notes: "", bookmarks: {} }; }
+  function emptyData() { return { daily: {}, monthly: {}, yearly: {}, custom: [], journal: { daily: {}, monthly: {}, yearly: {} }, notes: "", photos: {}, bookmarks: {} }; }
   function normalize(raw) {
     let d = emptyData();
     if (raw && typeof raw === "object") d = Object.assign(d, raw);
@@ -836,6 +882,7 @@
     if (!d.journal.monthly) d.journal.monthly = {};
     if (!d.journal.yearly) d.journal.yearly = {};
     if (typeof d.notes !== "string") d.notes = "";     // personal scratchpad (self notes)
+    if (!d.photos || typeof d.photos !== "object") d.photos = {};   // per-day posted images { "YYYY-MM-DD": [{id,url}] }
     if (!d.bookmarks || typeof d.bookmarks !== "object") d.bookmarks = {};
     return d;
   }
@@ -1148,6 +1195,7 @@
     if (e.key !== "Escape") return;
     if (journalModal.classList.contains("show")) closeJournalModal();
     if (notesModal.classList.contains("show")) closeNotesModal();
+    if (imgLightbox.classList.contains("show")) closeLightbox();
     if (photoModal.classList.contains("show")) photoModal.classList.remove("show");
   });
 
@@ -1678,8 +1726,116 @@
     return copied;
   }
 
+  // ---------- Day photos (scrapbook) ----------
+  const photoScatter = document.getElementById("photoScatter");
+  const photoInput = document.getElementById("photoInput");
+  const imgLightbox = document.getElementById("imgLightbox");
+  const lightboxImg = document.getElementById("lightboxImg");
+  const lightboxDelete = document.getElementById("lightboxDelete");
+  const lightboxClose = document.getElementById("lightboxClose");
+  const MAX_PHOTO_DIM = 1400;               // downscale the longest edge so stored data stays small
+  let lightboxPhotoId = null;
+  // Soft frame colors — each photo gets one (stable per id) for a scrapbook feel.
+  const PHOTO_FRAMES = ["#ffffff", "#ffd66b", "#ff9aa2", "#9ad0ff", "#a8e6a3", "#d3aaf0", "#ffb877", "#8fe3dd"];
+
+  function photoList(create) {
+    const key = dayKey(selectedDate);
+    if (!data.photos) data.photos = {};
+    if (!Array.isArray(data.photos[key])) { if (!create) return []; data.photos[key] = []; }
+    return data.photos[key];
+  }
+  // Stable pseudo-random hash from the photo id, so a photo's tilt/jitter/stacking
+  // stay put across re-renders instead of jumping around.
+  function hashId(id) {
+    let h = 2166136261;
+    for (let i = 0; i < id.length; i++) { h ^= id.charCodeAt(i); h = Math.imul(h, 16777619); }
+    h ^= h >>> 13; h = Math.imul(h, 0x5bd1e995); h ^= h >>> 15;
+    return Math.abs(h);
+  }
+  function renderPhotos() {
+    if (!photoScatter) return;
+    photoScatter.innerHTML = "";
+    photoList(false).forEach(p => {
+      const img = document.createElement("img");
+      img.className = "photo-sq"; img.src = p.url; img.alt = "Photo"; img.loading = "lazy";
+      const h = hashId(p.id);
+      const rot = (h % 33) - 16;                 // -16°..+16°
+      const jitterY = ((h >>> 5) % 17) - 8;      // -8..+8 px vertical scatter
+      const frame = PHOTO_FRAMES[(h >>> 11) % PHOTO_FRAMES.length];
+      img.style.transform = "rotate(" + rot + "deg) translateY(" + jitterY + "px)";
+      img.style.zIndex = String(2 + (h % 40));   // varied stacking so overlaps look organic
+      img.style.borderColor = frame;
+      img.style.background = frame;
+      img.addEventListener("click", () => openLightbox(p.id));
+      photoScatter.appendChild(img);
+    });
+    if (!readOnly) {
+      const add = document.createElement("button");
+      add.className = "photo-add"; add.type = "button"; add.title = "Add a photo for this day"; add.textContent = "+";
+      add.style.transform = "rotate(-3deg)";
+      add.addEventListener("click", () => photoInput.click());
+      photoScatter.appendChild(add);
+    }
+  }
+  // Shrink/compress a picked image to a JPEG data URL before storing it.
+  function downscaleImage(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error("read failed"));
+      reader.onload = () => {
+        const img = new Image();
+        img.onerror = () => reject(new Error("decode failed"));
+        img.onload = () => {
+          const scale = Math.min(1, MAX_PHOTO_DIM / Math.max(img.width, img.height));
+          const w = Math.max(1, Math.round(img.width * scale)), h = Math.max(1, Math.round(img.height * scale));
+          const canvas = document.createElement("canvas");
+          canvas.width = w; canvas.height = h;
+          canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+          try { resolve(canvas.toDataURL("image/jpeg", 0.82)); }
+          catch (e) { resolve(reader.result); }
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+  photoInput.addEventListener("change", async () => {
+    const files = [...(photoInput.files || [])];
+    photoInput.value = "";                  // let the same file be picked again later
+    if (!files.length) return;
+    const list = photoList(true);
+    let added = 0;
+    for (const file of files) {
+      if (!file.type || !file.type.startsWith("image/")) continue;
+      let url;
+      try { url = await downscaleImage(file); } catch (e) { continue; }
+      list.push({ id: uid(), url });
+      try { save(); added++; }
+      catch (err) { list.pop(); alert("Couldn't save the photo — browser storage is full. Remove some photos and try again."); break; }
+    }
+    if (added) renderPhotos();
+  });
+
+  function openLightbox(id) {
+    const p = photoList(false).find(x => x.id === id);
+    if (!p) return;
+    lightboxPhotoId = id;
+    lightboxImg.src = p.url;
+    imgLightbox.classList.add("show");
+  }
+  function closeLightbox() { imgLightbox.classList.remove("show"); lightboxPhotoId = null; }
+  lightboxClose.addEventListener("click", closeLightbox);
+  imgLightbox.addEventListener("click", (e) => { if (e.target === imgLightbox) closeLightbox(); });
+  lightboxDelete.addEventListener("click", () => {
+    if (readOnly || !lightboxPhotoId) return;
+    const list = photoList(false);
+    const i = list.findIndex(x => x.id === lightboxPhotoId);
+    if (i >= 0) { list.splice(i, 1); save(); renderPhotos(); }
+    closeLightbox();
+  });
+
   // ---------- Render all ----------
-  function renderAll() { renderCalendar(); renderGoals(); }
+  function renderAll() { renderCalendar(); renderGoals(); renderPhotos(); }
 
   // ============================================================
   //  Authentication (Google Sign-In) + server sync
