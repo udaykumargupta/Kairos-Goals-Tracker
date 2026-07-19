@@ -352,8 +352,8 @@
   .journal-modal-head span { font-size: 15px; font-weight: 650; }
   .journal-modal-close { background: transparent; border: none; color: var(--muted); font-size: 18px; cursor: pointer; padding: 2px 6px; border-radius: 6px; }
   .journal-modal-close:hover { color: var(--text); background: var(--panel-2); }
-  #journalModalArea { flex: 1; min-height: 0; resize: none; width: 100%; padding: 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 15.5px; line-height: 1.65; font-family: inherit; outline: none; box-sizing: border-box; }
-  #journalModalArea:focus { border-color: var(--accent); background: var(--panel); }
+  #journalModalArea, #notesArea { flex: 1; min-height: 0; resize: none; width: 100%; padding: 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 15.5px; line-height: 1.65; font-family: inherit; outline: none; box-sizing: border-box; }
+  #journalModalArea:focus, #notesArea:focus { border-color: var(--accent); background: var(--panel); }
   .tl-journal-head { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; font-size: 10.5px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--muted); }
   .tl-journal-expand { background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 13px; padding: 1px 5px; border-radius: 6px; }
   .tl-journal-expand:hover { color: var(--accent); background: var(--panel); }
@@ -520,6 +520,7 @@
   body.readonly .goal-del,
   body.readonly .tl-menu,
   body.readonly .settings-wrap,
+  body.readonly #notesBtn,
   body.readonly #themeBtn { display: none !important; }
   body.readonly .checkbox,
   body.readonly .goal-text,
@@ -541,6 +542,7 @@
     </div>
     <div class="top-actions">
       <div class="sync-badge" id="syncBadge" style="display:none"><span class="dot"></span><span id="syncText">Saved</span></div>
+      <button class="icon-btn" id="notesBtn" title="Notes &amp; Reminders">🗒️</button>
       <div class="settings-wrap">
         <button class="icon-btn" id="settingsBtn" title="Settings & account">⚙️</button>
         <div class="popover" id="settingsPop">
@@ -728,6 +730,17 @@
   </div>
 </div>
 
+<!-- Self notes -->
+<div class="modal-overlay journal-modal" id="notesModal">
+  <div class="journal-modal-card">
+    <div class="journal-modal-head">
+      <span>🗒️ Notes &amp; Reminders</span>
+      <button class="journal-modal-close" id="notesModalClose" title="Close">✕</button>
+    </div>
+    <textarea id="notesArea" placeholder="Write your notes and reminders here…"></textarea>
+  </div>
+</div>
+
 <!-- Full-page journal -->
 <div class="modal-overlay journal-modal" id="journalModal">
   <div class="journal-modal-card">
@@ -810,7 +823,7 @@
   }
   function saveSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }
 
-  function emptyData() { return { daily: {}, monthly: {}, yearly: {}, custom: [], journal: { daily: {}, monthly: {}, yearly: {} }, bookmarks: {} }; }
+  function emptyData() { return { daily: {}, monthly: {}, yearly: {}, custom: [], journal: { daily: {}, monthly: {}, yearly: {} }, notes: "", bookmarks: {} }; }
   function normalize(raw) {
     let d = emptyData();
     if (raw && typeof raw === "object") d = Object.assign(d, raw);
@@ -822,6 +835,7 @@
     if (!d.journal.daily) d.journal.daily = {};
     if (!d.journal.monthly) d.journal.monthly = {};
     if (!d.journal.yearly) d.journal.yearly = {};
+    if (typeof d.notes !== "string") d.notes = "";     // personal scratchpad (self notes)
     if (!d.bookmarks || typeof d.bookmarks !== "object") d.bookmarks = {};
     return d;
   }
@@ -1133,7 +1147,29 @@
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
     if (journalModal.classList.contains("show")) closeJournalModal();
+    if (notesModal.classList.contains("show")) closeNotesModal();
     if (photoModal.classList.contains("show")) photoModal.classList.remove("show");
+  });
+
+  // ---------- Self notes (personal scratchpad) ----------
+  const notesBtn = document.getElementById("notesBtn");
+  const notesModal = document.getElementById("notesModal");
+  const notesArea = document.getElementById("notesArea");
+  const notesModalClose = document.getElementById("notesModalClose");
+  function openNotesModal() {
+    notesArea.value = data.notes || "";
+    notesArea.readOnly = readOnly;
+    notesModal.classList.add("show");
+    notesArea.focus();
+  }
+  function closeNotesModal() { notesModal.classList.remove("show"); }
+  notesBtn.addEventListener("click", openNotesModal);
+  notesModalClose.addEventListener("click", closeNotesModal);
+  notesModal.addEventListener("click", (e) => { if (e.target === notesModal) closeNotesModal(); });
+  notesArea.addEventListener("input", () => {
+    if (readOnly) return;
+    data.notes = notesArea.value;
+    save();
   });
 
   // ---------- Time elapsed / left in the current day / month / year ----------
