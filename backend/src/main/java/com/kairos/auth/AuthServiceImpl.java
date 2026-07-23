@@ -31,6 +31,20 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse loginWithGoogle(String idToken) {
         GoogleUser googleUser = googleTokenVerifier.verify(idToken);
         User user = userService.upsertFromGoogle(googleUser);
+        return issueFor(user);
+    }
+
+    @Override
+    public AuthResponse register(String email, String password, String displayName) {
+        return issueFor(userService.registerLocal(email, password, displayName));
+    }
+
+    @Override
+    public AuthResponse login(String email, String password) {
+        return issueFor(userService.loginLocal(email, password));
+    }
+
+    private AuthResponse issueFor(User user) {
         String jwt = jwtService.issue(user);
         return new AuthResponse(jwt, UserDto.from(user));
     }

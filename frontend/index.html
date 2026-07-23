@@ -473,6 +473,24 @@
   .guest-btn { width: 100%; padding: 11px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; transition: .15s; }
   .guest-btn:hover { border-color: var(--accent); color: var(--accent); }
 
+  /* Email/password form on the gate */
+  .auth-form { display: flex; flex-direction: column; gap: 10px; text-align: left; }
+  .auth-form input {
+    width: 100%; padding: 11px 13px; border-radius: 11px; border: 1px solid var(--line);
+    background: var(--panel-2); color: var(--text); font-size: 14px; font-family: inherit; outline: none; transition: .15s;
+  }
+  .auth-form input:focus { border-color: var(--accent); background: var(--panel); }
+  .auth-submit {
+    width: 100%; padding: 11px; border-radius: 11px; border: none; cursor: pointer; margin-top: 2px;
+    background: var(--accent); color: #fff; font-size: 14px; font-weight: 650; font-family: inherit; transition: .15s;
+  }
+  .auth-submit:hover { filter: brightness(1.06); }
+  .auth-submit:disabled { opacity: .6; cursor: default; }
+  .auth-error { color: var(--danger); font-size: 12.5px; line-height: 1.5; min-height: 0; text-align: left; }
+  .auth-toggle { font-size: 12.5px; color: var(--muted); text-align: center; margin-top: 2px; }
+  .auth-toggle button { background: none; border: none; color: var(--accent); font-weight: 650; cursor: pointer; font-size: 12.5px; font-family: inherit; padding: 0; }
+  .auth-toggle button:hover { text-decoration: underline; }
+
   /* Reset control + confirmation modal */
   .pop-divider { height: 1px; background: var(--line); margin: 12px 0 10px; }
   .pop-danger-btn { width: 100%; padding: 9px; border-radius: 10px; border: 1px solid var(--line); background: transparent; color: var(--danger); font-size: 13px; font-weight: 600; cursor: pointer; transition: .15s; }
@@ -555,6 +573,20 @@
   .pop-acct-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
   .pop-acct-btn.primary:hover { filter: brightness(1.05); color: #fff; }
 
+  /* Set / change password form in the settings popover */
+  .pw-input { width: 100%; padding: 8px 10px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 13px; font-family: inherit; outline: none; margin-bottom: 7px; transition: .15s; }
+  .pw-input:focus { border-color: var(--accent); background: var(--panel); }
+  .pw-msg { font-size: 11.5px; line-height: 1.4; margin: 2px 0 7px; min-height: 0; }
+  .pw-msg.err { color: var(--danger); }
+  .pw-msg.ok { color: var(--accent-2); }
+  .pw-actions { display: flex; gap: 8px; }
+  .pw-btn { flex: 1; padding: 8px; border-radius: 9px; border: 1px solid var(--line); font-size: 12.5px; font-weight: 650; font-family: inherit; cursor: pointer; transition: .15s; }
+  .pw-btn.ghost { background: transparent; color: var(--muted); }
+  .pw-btn.ghost:hover { color: var(--text); border-color: var(--muted); }
+  .pw-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .pw-btn.primary:hover { filter: brightness(1.05); }
+  .pw-btn:disabled { opacity: .6; cursor: default; }
+
   /* Share link controls */
   .share-link-row { display: flex; gap: 6px; margin: 8px 0 2px; }
   .share-link-row input { flex: 1; min-width: 0; padding: 8px 10px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 12px; outline: none; }
@@ -614,6 +646,18 @@
           </div>
           <input type="file" id="avatarInput" accept="image/*" style="display:none" />
           <button class="pop-acct-btn" id="popAuthBtn">Sign in</button>
+          <div id="pwSection" style="display:none">
+            <button class="pop-acct-btn" id="pwToggleBtn" type="button" style="margin-top:8px">Set a password</button>
+            <div id="pwForm" style="display:none; margin-top:8px">
+              <input class="pw-input" type="password" id="pwCurrent" placeholder="Current password" autocomplete="current-password" style="display:none" />
+              <input class="pw-input" type="password" id="pwNew" placeholder="New password (min 8)" autocomplete="new-password" />
+              <div class="pw-msg" id="pwMsg"></div>
+              <div class="pw-actions">
+                <button class="pw-btn ghost" id="pwCancel" type="button">Cancel</button>
+                <button class="pw-btn primary" id="pwSave" type="button">Save</button>
+              </div>
+            </div>
+          </div>
           <div class="pop-divider"></div>
           <h3 class="pop-h3-row">Day completion marks
             <span class="info-wrap">
@@ -763,8 +807,17 @@
   <div class="auth-card">
     <div class="logo-lg">🎯</div>
     <h2>Kairos</h2>
-    <p>Sign in with Google to sync your goals across devices — or continue as a guest and keep them on this device.</p>
+    <p>Sign in to sync your goals across devices — or continue as a guest and keep them on this device.</p>
     <div id="gsiButton"></div>
+    <div class="auth-or">or use email</div>
+    <form class="auth-form" id="authForm" autocomplete="on">
+      <input type="text" id="authName" placeholder="Your name" autocomplete="name" style="display:none" />
+      <input type="email" id="authEmail" placeholder="Email" autocomplete="email" required />
+      <input type="password" id="authPassword" placeholder="Password" autocomplete="current-password" required />
+      <div class="auth-error" id="authError"></div>
+      <button type="submit" class="auth-submit" id="authSubmit">Log in</button>
+    </form>
+    <div class="auth-toggle" id="authToggle">New to Kairos? <button type="button" id="authToggleBtn">Create an account</button></div>
     <div class="auth-or">or</div>
     <button class="guest-btn" id="guestBtn">Continue as guest</button>
     <div class="auth-foot">Guest goals are saved only in this browser. You can sign in later to sync them.</div>
@@ -1991,6 +2044,7 @@
     popAvatarWrap.style.display = "";                // hover the photo to view / change
     updatePhotoResetVisibility();
     refreshShareUI(true);
+    refreshPasswordUI();
   }
   function showGuest() {
     popAvatar.style.display = "none";
@@ -1998,12 +2052,13 @@
     popName.textContent = "Guest";
     popName.classList.remove("editable");
     popSub.textContent = "Saved only on this device";
-    popAuthBtn.textContent = "Sign in with Google";
+    popAuthBtn.textContent = "Sign in";
     popAuthBtn.className = "pop-acct-btn primary";   // guest can upgrade to a synced account
     syncBadge.style.display = "inline-flex";
     syncBadge.className = "sync-badge local";
     syncText.textContent = "On this device";
     refreshShareUI(false);
+    refreshPasswordUI();
   }
 
   // "Use Google photo" appears in the avatar menu only when a custom picture is set.
@@ -2024,8 +2079,62 @@
       popSub.textContent = u.email || "";
       if (u.picture) { popAvatar.src = u.picture; popAvatar.style.display = ""; }
       updatePhotoResetVisibility();
+      refreshPasswordUI();
     } catch (e) {}
   }
+
+  // --- Set / change password (settings popover) ---
+  const pwSection = document.getElementById("pwSection");
+  const pwToggleBtn = document.getElementById("pwToggleBtn");
+  const pwForm = document.getElementById("pwForm");
+  const pwCurrent = document.getElementById("pwCurrent");
+  const pwNew = document.getElementById("pwNew");
+  const pwMsg = document.getElementById("pwMsg");
+  const pwSave = document.getElementById("pwSave");
+  const pwCancel = document.getElementById("pwCancel");
+
+  function refreshPasswordUI() {
+    const signedIn = !!authToken && !readOnly;
+    pwSection.style.display = signedIn ? "" : "none";
+    const has = !!(currentUser && currentUser.hasPassword);
+    pwToggleBtn.textContent = has ? "Change password" : "Set a password";
+    pwForm.style.display = "none";
+    pwMsg.textContent = "";
+  }
+  function openPwForm() {
+    const has = !!(currentUser && currentUser.hasPassword);
+    pwCurrent.style.display = has ? "" : "none";   // current password only when changing
+    pwCurrent.value = ""; pwNew.value = "";
+    pwMsg.textContent = ""; pwMsg.className = "pw-msg";
+    pwForm.style.display = "";
+    (has ? pwCurrent : pwNew).focus();
+  }
+  pwToggleBtn.addEventListener("click", () => {
+    if (pwForm.style.display === "none") openPwForm(); else pwForm.style.display = "none";
+  });
+  pwCancel.addEventListener("click", () => { pwForm.style.display = "none"; pwMsg.textContent = ""; });
+  pwSave.addEventListener("click", async () => {
+    const has = !!(currentUser && currentUser.hasPassword);
+    const newPassword = pwNew.value;
+    pwMsg.className = "pw-msg";
+    if (newPassword.length < 8) { pwMsg.className = "pw-msg err"; pwMsg.textContent = "Password must be at least 8 characters."; return; }
+    pwSave.disabled = true; pwSave.textContent = "Saving…";
+    try {
+      const body = has ? { currentPassword: pwCurrent.value, newPassword } : { newPassword };
+      const res = await api("PUT", "/api/profile/password", body);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data && data.message ? data.message : "Couldn't update password.");
+      currentUser = data;                            // updated UserDto (hasPassword = true)
+      pwMsg.className = "pw-msg ok"; pwMsg.textContent = "Password saved.";
+      pwToggleBtn.textContent = "Change password";
+      pwNew.value = ""; pwCurrent.value = "";
+      setTimeout(() => { pwForm.style.display = "none"; pwMsg.textContent = ""; }, 1200);
+    } catch (err) {
+      pwMsg.className = "pw-msg err"; pwMsg.textContent = err.message || "Couldn't update password.";
+    } finally {
+      pwSave.disabled = false; pwSave.textContent = "Save";
+    }
+  });
 
   // --- Avatar upload (resized client-side to a small square data URL) ---
   function fileToSquareDataUrl(file, size) {
@@ -2133,6 +2242,7 @@
     authGate.classList.add("show");
     syncBadge.style.display = "none";
     renderGoogleButton();
+    if (authForm) { authForm.reset(); setAuthMode("login"); }   // always open on the Log in form
   }
 
   // Guest mode: no account, goals persisted only in this browser's localStorage.
@@ -2192,6 +2302,18 @@
       google.accounts.id.renderButton(gsiButton, { theme: "filled_blue", size: "large", shape: "pill", text: "signin_with", width: 280 });
     });
   }
+  // Shared post-authentication flow (used by Google, email login, and register).
+  async function completeLogin(body) {                // body = { token, user }
+    authToken = body.token;
+    isGuest = false;
+    localStorage.setItem(JWT_KEY, authToken);
+    localStorage.removeItem(MODE_KEY);
+    showUser(body.user);
+    hideGate();
+    const claims = decodeJwt(authToken);
+    await syncFromServer(claims ? claims.sub : "me");
+  }
+
   async function onCredential(response) {
     try {
       const res = await fetch("/api/auth/google", {
@@ -2200,20 +2322,69 @@
         body: JSON.stringify({ idToken: response.credential })
       });
       if (!res.ok) throw new Error("login failed");
-      const body = await res.json();               // { token, user }
-      authToken = body.token;
-      isGuest = false;
-      localStorage.setItem(JWT_KEY, authToken);
-      localStorage.removeItem(MODE_KEY);
-      showUser(body.user);
-      hideGate();
-      const claims = decodeJwt(authToken);
-      await syncFromServer(claims ? claims.sub : "me");
+      await completeLogin(await res.json());
     } catch (e) {
       gsiButton.insertAdjacentHTML("beforeend",
         '<div class="gsi-missing" style="margin-top:12px">Sign-in failed. Please try again.</div>');
     }
   }
+
+  // --- Email / password sign-in ---
+  const authForm = document.getElementById("authForm");
+  const authNameEl = document.getElementById("authName");
+  const authEmailEl = document.getElementById("authEmail");
+  const authPasswordEl = document.getElementById("authPassword");
+  const authErrorEl = document.getElementById("authError");
+  const authSubmitBtn = document.getElementById("authSubmit");
+  const authToggleWrap = document.getElementById("authToggle");
+  const authToggleBtn = document.getElementById("authToggleBtn");
+  let authMode = "login";                            // "login" | "register"
+
+  function setAuthMode(mode) {
+    authMode = mode;
+    authErrorEl.textContent = "";
+    const register = mode === "register";
+    authNameEl.style.display = register ? "" : "none";
+    authPasswordEl.autocomplete = register ? "new-password" : "current-password";
+    authPasswordEl.placeholder = register ? "Password (min 8 characters)" : "Password";
+    authSubmitBtn.textContent = register ? "Create account" : "Log in";
+    authToggleWrap.innerHTML = register
+      ? 'Already have an account? <button type="button" id="authToggleBtn">Log in</button>'
+      : 'New to Kairos? <button type="button" id="authToggleBtn">Create an account</button>';
+    document.getElementById("authToggleBtn").addEventListener("click", () => setAuthMode(register ? "login" : "register"));
+  }
+  authToggleBtn.addEventListener("click", () => setAuthMode("register"));
+
+  authForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = authEmailEl.value.trim();
+    const password = authPasswordEl.value;
+    const name = authNameEl.value.trim();
+    authErrorEl.textContent = "";
+    if (!email || !password) { authErrorEl.textContent = "Please enter your email and password."; return; }
+    if (authMode === "register" && password.length < 8) { authErrorEl.textContent = "Password must be at least 8 characters."; return; }
+    authSubmitBtn.disabled = true;
+    authSubmitBtn.textContent = authMode === "register" ? "Creating…" : "Logging in…";
+    try {
+      const path = authMode === "register" ? "/api/auth/register" : "/api/auth/login";
+      const payload = authMode === "register" ? { email, password, name } : { email, password };
+      const res = await fetch(path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body && body.message ? body.message : "Something went wrong. Please try again.");
+      authForm.reset();
+      authErrorEl.textContent = "";
+      await completeLogin(body);
+    } catch (err) {
+      authErrorEl.textContent = err.message || "Something went wrong. Please try again.";
+    } finally {
+      authSubmitBtn.disabled = false;
+      authSubmitBtn.textContent = authMode === "register" ? "Create account" : "Log in";
+    }
+  });
 
   async function initAuth() {
     try {

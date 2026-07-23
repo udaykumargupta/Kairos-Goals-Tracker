@@ -2,8 +2,10 @@ package com.kairos.user;
 
 import com.kairos.auth.dto.UserDto;
 import com.kairos.security.AuthenticatedUser;
+import com.kairos.user.dto.SetPasswordRequest;
 import com.kairos.user.dto.UpdatePictureRequest;
 import com.kairos.user.dto.UpdateProfileRequest;
+import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -40,5 +42,12 @@ public class ProfileController {
     public UserDto updatePicture(@AuthenticationPrincipal AuthenticatedUser user,
                                  @RequestBody UpdatePictureRequest request) {
         return UserDto.from(userService.updatePicture(user.id(), request.picture()));
+    }
+
+    /** Set or change the current user's password (enables email/password login). */
+    @PutMapping("/password")
+    public UserDto setPassword(@AuthenticationPrincipal AuthenticatedUser user,
+                               @Valid @RequestBody SetPasswordRequest request) {
+        return UserDto.from(userService.setPassword(user.id(), request.currentPassword(), request.newPassword()));
     }
 }

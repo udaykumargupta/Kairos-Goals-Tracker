@@ -9,4 +9,10 @@ import com.kairos.auth.dto.AuthResponse;
 public interface AuthService {
 
     AuthResponse loginWithGoogle(String idToken);
+
+    /** Register a new email/password account and issue a JWT. */
+    AuthResponse register(String email, String password, String displayName);
+
+    /** Authenticate an email/password account and issue a JWT. */
+    AuthResponse login(String email, String password);
 }

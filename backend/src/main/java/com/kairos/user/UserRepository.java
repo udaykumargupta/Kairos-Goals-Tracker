@@ -13,4 +13,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByGoogleSub(String googleSub);
 
     Optional<User> findByShareToken(String shareToken);
+
+    boolean existsByEmailIgnoreCase(String email);
+
+    Optional<User> findFirstByEmailIgnoreCaseOrderByIdAsc(String email);
 }

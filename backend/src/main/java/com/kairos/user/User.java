@@ -44,6 +44,10 @@ public class User {
     @Column(name = "custom_picture", columnDefinition = "text")
     private String customPicture;
 
+    /** BCrypt hash for email/password accounts; null for Google-only accounts. */
+    @Column(name = "password_hash", columnDefinition = "text")
+    private String passwordHash;
+
     /** When non-null, progress is shared read-only at /?share=&lt;shareToken&gt;. */
     @Column(name = "share_token", unique = true)
     private String shareToken;
@@ -63,6 +67,21 @@ public class User {
         this.email = email;
         this.name = name;
         this.picture = picture;
+    }
+
+    /**
+     * Create an email/password user (no Google identity). A synthetic, unique
+     * {@code google_sub} keeps the existing NOT NULL/UNIQUE column satisfied
+     * without a schema change.
+     */
+    public static User localUser(String email, String name, String passwordHash) {
+        User u = new User();
+        u.googleSub = "local:" + java.util.UUID.randomUUID();
+        u.email = email;
+        u.name = name;
+        u.picture = null;
+        u.passwordHash = passwordHash;
+        return u;
     }
 
     @PrePersist
@@ -128,6 +147,19 @@ public class User {
 
     public String getPicture() {
         return picture;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
+    /** Whether this account can sign in with a password (vs. Google-only). */
+    public boolean hasPassword() {
+        return passwordHash != null && !passwordHash.isBlank();
     }
 
     public String getShareToken() {
