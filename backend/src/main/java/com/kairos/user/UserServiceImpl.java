@@ -6,6 +6,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -62,19 +64,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findFirstByEmailIgnoreCaseOrderByIdAsc(normalizeEmail(email));
+    }
+
+    @Override
     @Transactional
-    public User setPassword(Long userId, String currentPassword, String newPassword) {
-        if (newPassword == null || newPassword.length() < 8 || newPassword.length() > 100) {
+    public User applyNewPassword(Long userId, String rawPassword) {
+        if (rawPassword == null || rawPassword.length() < 8 || rawPassword.length() > 100) {
             throw new IllegalArgumentException("Password must be 8–100 characters");
         }
         User user = getById(userId);
-        if (user.hasPassword()) {
-            // Bad-request (not 401): the session is valid, only the supplied current password is wrong.
-            if (currentPassword == null || !passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
-                throw new IllegalArgumentException("Current password is incorrect");
-            }
-        }
-        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        user.setPasswordHash(passwordEncoder.encode(rawPassword));
         return userRepository.save(user);
     }
 

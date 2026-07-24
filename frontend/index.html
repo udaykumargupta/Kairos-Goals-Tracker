@@ -487,9 +487,13 @@
   .auth-submit:hover { filter: brightness(1.06); }
   .auth-submit:disabled { opacity: .6; cursor: default; }
   .auth-error { color: var(--danger); font-size: 12.5px; line-height: 1.5; min-height: 0; text-align: left; }
+  .auth-error.ok { color: var(--accent-2); }
   .auth-toggle { font-size: 12.5px; color: var(--muted); text-align: center; margin-top: 2px; }
   .auth-toggle button { background: none; border: none; color: var(--accent); font-weight: 650; cursor: pointer; font-size: 12.5px; font-family: inherit; padding: 0; }
   .auth-toggle button:hover { text-decoration: underline; }
+  .auth-forgot { text-align: right; margin: 6px 0 2px; }
+  .auth-forgot button { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 12px; font-family: inherit; padding: 0; }
+  .auth-forgot button:hover { color: var(--accent); text-decoration: underline; }
 
   /* Reset control + confirmation modal */
   .pop-divider { height: 1px; background: var(--line); margin: 12px 0 10px; }
@@ -573,20 +577,6 @@
   .pop-acct-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
   .pop-acct-btn.primary:hover { filter: brightness(1.05); color: #fff; }
 
-  /* Set / change password form in the settings popover */
-  .pw-input { width: 100%; padding: 8px 10px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 13px; font-family: inherit; outline: none; margin-bottom: 7px; transition: .15s; }
-  .pw-input:focus { border-color: var(--accent); background: var(--panel); }
-  .pw-msg { font-size: 11.5px; line-height: 1.4; margin: 2px 0 7px; min-height: 0; }
-  .pw-msg.err { color: var(--danger); }
-  .pw-msg.ok { color: var(--accent-2); }
-  .pw-actions { display: flex; gap: 8px; }
-  .pw-btn { flex: 1; padding: 8px; border-radius: 9px; border: 1px solid var(--line); font-size: 12.5px; font-weight: 650; font-family: inherit; cursor: pointer; transition: .15s; }
-  .pw-btn.ghost { background: transparent; color: var(--muted); }
-  .pw-btn.ghost:hover { color: var(--text); border-color: var(--muted); }
-  .pw-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .pw-btn.primary:hover { filter: brightness(1.05); }
-  .pw-btn:disabled { opacity: .6; cursor: default; }
-
   /* Share link controls */
   .share-link-row { display: flex; gap: 6px; margin: 8px 0 2px; }
   .share-link-row input { flex: 1; min-width: 0; padding: 8px 10px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 12px; outline: none; }
@@ -646,18 +636,6 @@
           </div>
           <input type="file" id="avatarInput" accept="image/*" style="display:none" />
           <button class="pop-acct-btn" id="popAuthBtn">Sign in</button>
-          <div id="pwSection" style="display:none">
-            <button class="pop-acct-btn" id="pwToggleBtn" type="button" style="margin-top:8px">Set a password</button>
-            <div id="pwForm" style="display:none; margin-top:8px">
-              <input class="pw-input" type="password" id="pwCurrent" placeholder="Current password" autocomplete="current-password" style="display:none" />
-              <input class="pw-input" type="password" id="pwNew" placeholder="New password (min 8)" autocomplete="new-password" />
-              <div class="pw-msg" id="pwMsg"></div>
-              <div class="pw-actions">
-                <button class="pw-btn ghost" id="pwCancel" type="button">Cancel</button>
-                <button class="pw-btn primary" id="pwSave" type="button">Save</button>
-              </div>
-            </div>
-          </div>
           <div class="pop-divider"></div>
           <h3 class="pop-h3-row">Day completion marks
             <span class="info-wrap">
@@ -807,20 +785,34 @@
   <div class="auth-card">
     <div class="logo-lg">🎯</div>
     <h2>Kairos</h2>
-    <p>Sign in to sync your goals across devices — or continue as a guest and keep them on this device.</p>
-    <div id="gsiButton"></div>
-    <div class="auth-or">or use email</div>
-    <form class="auth-form" id="authForm" autocomplete="on">
-      <input type="text" id="authName" placeholder="Your name" autocomplete="name" style="display:none" />
-      <input type="email" id="authEmail" placeholder="Email" autocomplete="email" required />
-      <input type="password" id="authPassword" placeholder="Password" autocomplete="current-password" required />
-      <div class="auth-error" id="authError"></div>
-      <button type="submit" class="auth-submit" id="authSubmit">Log in</button>
-    </form>
-    <div class="auth-toggle" id="authToggle">New to Kairos? <button type="button" id="authToggleBtn">Create an account</button></div>
-    <div class="auth-or">or</div>
-    <button class="guest-btn" id="guestBtn">Continue as guest</button>
-    <div class="auth-foot">Guest goals are saved only in this browser. You can sign in later to sync them.</div>
+    <p id="authIntro">Sign in to sync your goals across devices — or continue as a guest and keep them on this device.</p>
+    <!-- Normal sign-in / register / forgot -->
+    <div id="authMain">
+      <div id="gsiButton"></div>
+      <div class="auth-or" id="authOrEmail">or use email</div>
+      <form class="auth-form" id="authForm" autocomplete="on">
+        <input type="text" id="authName" placeholder="Your name" autocomplete="name" style="display:none" />
+        <input type="email" id="authEmail" placeholder="Email" autocomplete="email" required />
+        <input type="password" id="authPassword" placeholder="Password" autocomplete="current-password" required />
+        <div class="auth-error" id="authError"></div>
+        <button type="submit" class="auth-submit" id="authSubmit">Log in</button>
+      </form>
+      <div class="auth-forgot" id="authForgotRow"><button type="button" id="authForgotBtn">Forgot password?</button></div>
+      <div class="auth-toggle" id="authToggle">New to Kairos? <button type="button" id="authToggleBtn">Create an account</button></div>
+      <div class="auth-or">or</div>
+      <button class="guest-btn" id="guestBtn">Continue as guest</button>
+      <div class="auth-foot">Guest goals are saved only in this browser. You can sign in later to sync them.</div>
+    </div>
+    <!-- Reset password (shown when opened via /?reset=<token>) -->
+    <div id="resetView" style="display:none">
+      <form class="auth-form" id="resetForm" autocomplete="on">
+        <input type="password" id="resetPw1" placeholder="New password (min 8)" autocomplete="new-password" required />
+        <input type="password" id="resetPw2" placeholder="Confirm new password" autocomplete="new-password" required />
+        <div class="auth-error" id="resetError"></div>
+        <button type="submit" class="auth-submit" id="resetSubmit">Reset password</button>
+      </form>
+      <div class="auth-toggle"><button type="button" id="resetBackBtn">Back to sign in</button></div>
+    </div>
   </div>
 </div>
 
@@ -2044,7 +2036,6 @@
     popAvatarWrap.style.display = "";                // hover the photo to view / change
     updatePhotoResetVisibility();
     refreshShareUI(true);
-    refreshPasswordUI();
   }
   function showGuest() {
     popAvatar.style.display = "none";
@@ -2058,7 +2049,6 @@
     syncBadge.className = "sync-badge local";
     syncText.textContent = "On this device";
     refreshShareUI(false);
-    refreshPasswordUI();
   }
 
   // "Use Google photo" appears in the avatar menu only when a custom picture is set.
@@ -2079,62 +2069,8 @@
       popSub.textContent = u.email || "";
       if (u.picture) { popAvatar.src = u.picture; popAvatar.style.display = ""; }
       updatePhotoResetVisibility();
-      refreshPasswordUI();
     } catch (e) {}
   }
-
-  // --- Set / change password (settings popover) ---
-  const pwSection = document.getElementById("pwSection");
-  const pwToggleBtn = document.getElementById("pwToggleBtn");
-  const pwForm = document.getElementById("pwForm");
-  const pwCurrent = document.getElementById("pwCurrent");
-  const pwNew = document.getElementById("pwNew");
-  const pwMsg = document.getElementById("pwMsg");
-  const pwSave = document.getElementById("pwSave");
-  const pwCancel = document.getElementById("pwCancel");
-
-  function refreshPasswordUI() {
-    const signedIn = !!authToken && !readOnly;
-    pwSection.style.display = signedIn ? "" : "none";
-    const has = !!(currentUser && currentUser.hasPassword);
-    pwToggleBtn.textContent = has ? "Change password" : "Set a password";
-    pwForm.style.display = "none";
-    pwMsg.textContent = "";
-  }
-  function openPwForm() {
-    const has = !!(currentUser && currentUser.hasPassword);
-    pwCurrent.style.display = has ? "" : "none";   // current password only when changing
-    pwCurrent.value = ""; pwNew.value = "";
-    pwMsg.textContent = ""; pwMsg.className = "pw-msg";
-    pwForm.style.display = "";
-    (has ? pwCurrent : pwNew).focus();
-  }
-  pwToggleBtn.addEventListener("click", () => {
-    if (pwForm.style.display === "none") openPwForm(); else pwForm.style.display = "none";
-  });
-  pwCancel.addEventListener("click", () => { pwForm.style.display = "none"; pwMsg.textContent = ""; });
-  pwSave.addEventListener("click", async () => {
-    const has = !!(currentUser && currentUser.hasPassword);
-    const newPassword = pwNew.value;
-    pwMsg.className = "pw-msg";
-    if (newPassword.length < 8) { pwMsg.className = "pw-msg err"; pwMsg.textContent = "Password must be at least 8 characters."; return; }
-    pwSave.disabled = true; pwSave.textContent = "Saving…";
-    try {
-      const body = has ? { currentPassword: pwCurrent.value, newPassword } : { newPassword };
-      const res = await api("PUT", "/api/profile/password", body);
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data && data.message ? data.message : "Couldn't update password.");
-      currentUser = data;                            // updated UserDto (hasPassword = true)
-      pwMsg.className = "pw-msg ok"; pwMsg.textContent = "Password saved.";
-      pwToggleBtn.textContent = "Change password";
-      pwNew.value = ""; pwCurrent.value = "";
-      setTimeout(() => { pwForm.style.display = "none"; pwMsg.textContent = ""; }, 1200);
-    } catch (err) {
-      pwMsg.className = "pw-msg err"; pwMsg.textContent = err.message || "Couldn't update password.";
-    } finally {
-      pwSave.disabled = false; pwSave.textContent = "Save";
-    }
-  });
 
   // --- Avatar upload (resized client-side to a small square data URL) ---
   function fileToSquareDataUrl(file, size) {
@@ -2329,7 +2265,7 @@
     }
   }
 
-  // --- Email / password sign-in ---
+  // --- Email / password sign-in (login · register · forgot) ---
   const authForm = document.getElementById("authForm");
   const authNameEl = document.getElementById("authName");
   const authEmailEl = document.getElementById("authEmail");
@@ -2337,31 +2273,62 @@
   const authErrorEl = document.getElementById("authError");
   const authSubmitBtn = document.getElementById("authSubmit");
   const authToggleWrap = document.getElementById("authToggle");
-  const authToggleBtn = document.getElementById("authToggleBtn");
-  let authMode = "login";                            // "login" | "register"
+  const authIntro = document.getElementById("authIntro");
+  const authOrEmail = document.getElementById("authOrEmail");
+  const authForgotRow = document.getElementById("authForgotRow");
+  const DEFAULT_INTRO = authIntro.textContent;
+  let authMode = "login";                            // "login" | "register" | "forgot"
 
+  const submitLabels = { login: "Log in", register: "Create account", forgot: "Send reset link" };
   function setAuthMode(mode) {
     authMode = mode;
-    authErrorEl.textContent = "";
-    const register = mode === "register";
+    authErrorEl.textContent = ""; authErrorEl.className = "auth-error";
+    const register = mode === "register", forgot = mode === "forgot";
     authNameEl.style.display = register ? "" : "none";
+    authPasswordEl.style.display = forgot ? "none" : "";
     authPasswordEl.autocomplete = register ? "new-password" : "current-password";
     authPasswordEl.placeholder = register ? "Password (min 8 characters)" : "Password";
-    authSubmitBtn.textContent = register ? "Create account" : "Log in";
-    authToggleWrap.innerHTML = register
-      ? 'Already have an account? <button type="button" id="authToggleBtn">Log in</button>'
-      : 'New to Kairos? <button type="button" id="authToggleBtn">Create an account</button>';
-    document.getElementById("authToggleBtn").addEventListener("click", () => setAuthMode(register ? "login" : "register"));
+    authSubmitBtn.textContent = submitLabels[mode];
+    gsiButton.style.display = forgot ? "none" : "";
+    authOrEmail.style.display = forgot ? "none" : "";
+    authForgotRow.style.display = mode === "login" ? "" : "none";
+    authIntro.textContent = forgot ? "Enter your account email and we'll send you a link to set a new password." : DEFAULT_INTRO;
+    authToggleWrap.innerHTML = forgot
+      ? 'Remembered it? <button type="button" id="authToggleBtn">Back to log in</button>'
+      : register
+        ? 'Already have an account? <button type="button" id="authToggleBtn">Log in</button>'
+        : 'New to Kairos? <button type="button" id="authToggleBtn">Create an account</button>';
+    document.getElementById("authToggleBtn").addEventListener("click", () => setAuthMode(register ? "login" : (forgot ? "login" : "register")));
   }
-  authToggleBtn.addEventListener("click", () => setAuthMode("register"));
+  document.getElementById("authForgotBtn").addEventListener("click", () => setAuthMode("forgot"));
 
   authForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const email = authEmailEl.value.trim();
     const password = authPasswordEl.value;
     const name = authNameEl.value.trim();
-    authErrorEl.textContent = "";
-    if (!email || !password) { authErrorEl.textContent = "Please enter your email and password."; return; }
+    authErrorEl.textContent = ""; authErrorEl.className = "auth-error";
+    if (!email) { authErrorEl.textContent = "Please enter your email."; return; }
+
+    // Forgot-password: request a reset link, then show a neutral confirmation.
+    if (authMode === "forgot") {
+      authSubmitBtn.disabled = true; authSubmitBtn.textContent = "Sending…";
+      try {
+        await fetch("/api/auth/forgot-password", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email })
+        });
+        authErrorEl.className = "auth-error ok";
+        authErrorEl.textContent = "If that email is registered, a reset link is on its way. Check your inbox.";
+      } catch (err) {
+        authErrorEl.textContent = "Couldn't send the reset link. Please try again.";
+      } finally {
+        authSubmitBtn.disabled = false; authSubmitBtn.textContent = submitLabels.forgot;
+      }
+      return;
+    }
+
+    if (!password) { authErrorEl.textContent = "Please enter your password."; return; }
     if (authMode === "register" && password.length < 8) { authErrorEl.textContent = "Password must be at least 8 characters."; return; }
     authSubmitBtn.disabled = true;
     authSubmitBtn.textContent = authMode === "register" ? "Creating…" : "Logging in…";
@@ -2382,7 +2349,67 @@
       authErrorEl.textContent = err.message || "Something went wrong. Please try again.";
     } finally {
       authSubmitBtn.disabled = false;
-      authSubmitBtn.textContent = authMode === "register" ? "Create account" : "Log in";
+      authSubmitBtn.textContent = submitLabels[authMode];
+    }
+  });
+
+  // --- Reset password (opened via /?reset=<token>) ---
+  const authMain = document.getElementById("authMain");
+  const resetView = document.getElementById("resetView");
+  const resetForm = document.getElementById("resetForm");
+  const resetPw1 = document.getElementById("resetPw1");
+  const resetPw2 = document.getElementById("resetPw2");
+  const resetError = document.getElementById("resetError");
+  const resetSubmit = document.getElementById("resetSubmit");
+  const resetBackBtn = document.getElementById("resetBackBtn");
+  let resetToken = null;
+
+  function clearResetParam() {
+    const u = new URL(location.href);
+    u.searchParams.delete("reset");
+    history.replaceState(null, "", u.pathname + u.search + u.hash);
+  }
+  function showResetView(token) {
+    resetToken = token;
+    authMain.style.display = "none";
+    resetView.style.display = "";
+    authIntro.textContent = "Choose a new password for your account.";
+    resetError.textContent = ""; resetError.className = "auth-error";
+    authGate.classList.add("show");
+    syncBadge.style.display = "none";
+    resetPw1.focus();
+  }
+  function exitResetView() {
+    resetView.style.display = "none";
+    authMain.style.display = "";
+    authIntro.textContent = DEFAULT_INTRO;
+    resetToken = null;
+    clearResetParam();
+  }
+  resetBackBtn.addEventListener("click", () => { exitResetView(); showGate(); });
+  resetForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    resetError.textContent = ""; resetError.className = "auth-error";
+    const p1 = resetPw1.value, p2 = resetPw2.value;
+    if (p1.length < 8) { resetError.textContent = "Password must be at least 8 characters."; return; }
+    if (p1 !== p2) { resetError.textContent = "The two passwords don't match."; return; }
+    resetSubmit.disabled = true; resetSubmit.textContent = "Resetting…";
+    try {
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: resetToken, newPassword: p1 })
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body && body.message ? body.message : "This reset link is invalid or has expired.");
+      resetForm.reset();
+      clearResetParam();
+      resetView.style.display = "none"; authMain.style.display = "";   // restore for later
+      authIntro.textContent = DEFAULT_INTRO;
+      await completeLogin(body);                                       // signed in with the new password
+    } catch (err) {
+      resetError.textContent = err.message || "This reset link is invalid or has expired.";
+    } finally {
+      resetSubmit.disabled = false; resetSubmit.textContent = "Reset password";
     }
   });
 
@@ -2439,9 +2466,21 @@
   // Initial paint (empty/local) sits behind the gate until sign-in completes.
   renderAll();
   renderQuote();
-  const shareParam = new URLSearchParams(location.search).get("share");
-  if (shareParam) enterSharedView(shareParam);
-  else initAuth();
+  const params = new URLSearchParams(location.search);
+  const shareParam = params.get("share");
+  const resetParam = params.get("reset");
+  if (shareParam) {
+    enterSharedView(shareParam);
+  } else if (resetParam) {
+    // Reset link takes priority over auto-login: load config (for a "back to sign in"),
+    // then show the reset form regardless of any stored session.
+    fetch("/api/public/config").then(r => r.ok ? r.json() : null)
+      .then(cfg => { if (cfg && cfg.googleClientId && cfg.googleClientId.indexOf("PASTE_") !== 0) googleClientId = cfg.googleClientId; })
+      .catch(() => {})
+      .finally(() => showResetView(resetParam));
+  } else {
+    initAuth();
+  }
 
   // Keep the time-elapsed / time-left meter current without a user action.
   setInterval(renderTimeStrip, 60000);

@@ -2,6 +2,8 @@ package com.kairos.user;
 
 import com.kairos.auth.GoogleUser;
 
+import java.util.Optional;
+
 /**
  * User lifecycle operations. Kept as an interface so callers depend on behaviour,
  * not on the JPA-backed implementation.
@@ -20,11 +22,11 @@ public interface UserService {
     /** Authenticate an email/password account, returning the user on success. */
     User loginLocal(String email, String rawPassword);
 
-    /**
-     * Set or change the signed-in user's password. First-time set (no existing password,
-     * e.g. a Google account) needs no current password; changing an existing one requires it.
-     */
-    User setPassword(Long userId, String currentPassword, String newPassword);
+    /** Find a user by email (case-insensitive), if any. */
+    Optional<User> findByEmail(String email);
+
+    /** Set a new password for the user (used by the password-reset flow). */
+    User applyNewPassword(Long userId, String rawPassword);
 
     User getById(Long userId);
 

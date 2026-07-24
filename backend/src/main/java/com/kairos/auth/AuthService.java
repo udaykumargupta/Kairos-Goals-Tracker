@@ -15,4 +15,14 @@ public interface AuthService {
 
     /** Authenticate an email/password account and issue a JWT. */
     AuthResponse login(String email, String password);
+
+    /**
+     * Start a password reset: if the email belongs to a user, email them a reset link
+     * built from {@code baseUrl}. Always returns normally (never reveals whether the
+     * email exists).
+     */
+    void requestPasswordReset(String email, String baseUrl);
+
+    /** Complete a password reset with a valid token, set the new password, and issue a JWT. */
+    AuthResponse resetPassword(String token, String newPassword);
 }

@@ -2,7 +2,7 @@
 
 > *Kairos* (καιρός): the ancient Greek word for the **right, opportune moment** to act.
 
-**🔗 Live: https://kairos-7yt7.onrender.com**
+**🔗 Live: https://urkairos.up.railway.app/**
 
 Track goals across every time horizon — **today, this month, this year, and any custom date range** — with a calendar, journal, and shareable progress. Sign in with Google to sync across devices, or use it as a guest with everything saved locally in your browser.
 

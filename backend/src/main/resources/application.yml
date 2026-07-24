@@ -21,6 +21,20 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  # Email for password-reset links. Leave MAIL_HOST unset in dev and the reset link is
+  # logged instead of sent. For Gmail: MAIL_HOST=smtp.gmail.com, MAIL_PORT=587,
+  # MAIL_USERNAME=<your gmail>, MAIL_PASSWORD=<16-char App Password>.
+  mail:
+    host: ${MAIL_HOST:}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 kairos:
   google:
@@ -31,6 +45,14 @@ kairos:
     secret: ${JWT_SECRET:kairos-dev-secret-change-me-please-0123456789}
     # 7 days, in milliseconds.
     expiration-ms: ${JWT_EXPIRATION_MS:604800000}
+  mail:
+    # "From" address on reset emails (usually the same as MAIL_USERNAME for Gmail).
+    from: ${MAIL_FROM:${MAIL_USERNAME:}}
+    # Sender display name shown to recipients (independent of the Gmail username).
+    from-name: ${MAIL_FROM_NAME:Kairos}
+  app:
+    # Public base URL for links in emails; blank = derive from the incoming request.
+    base-url: ${APP_BASE_URL:}
 
 logging:
   level:
