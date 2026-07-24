@@ -273,6 +273,58 @@
   .bookmark-btn { background: transparent; border: none; cursor: pointer; font-size: 20px; line-height: 1; padding: 0; color: var(--line); transition: color .15s, transform .15s; }
   .bookmark-btn:hover { color: #f2b705; transform: scale(1.1); }
   .bookmark-btn.on { color: #f2b705; }
+  .song-btn { background: transparent; border: none; cursor: pointer; font-size: 17px; line-height: 1; padding: 2px 4px; border-radius: 8px; opacity: .8; transition: .15s; }
+  .song-btn:hover { opacity: 1; transform: scale(1.15); }
+  .song-btn.on { opacity: 1; }
+  body.readonly .song-btn { display: none !important; }
+
+  /* Song of the day — hidden YouTube host + now-playing bar */
+  #ytHost { position: fixed; left: -9999px; top: -9999px; width: 200px; height: 120px; }
+  .song-bar {
+    display: flex; align-items: center; gap: 9px; min-width: 0; flex: 0 1 auto;
+    padding: 6px 8px; border-radius: 12px; background: var(--panel-2); border: 1px solid var(--line);
+    box-shadow: 0 1px 2px rgba(16,18,27,.05); max-width: 300px;
+  }
+  .song-bar-play, .song-bar-stop, .song-bar-next {
+    flex: none; border: none; cursor: pointer; display: grid; place-items: center; border-radius: 50%; padding: 0;
+  }
+  .song-bar-play { width: 34px; height: 34px; font-size: 13px; color: #fff; background: linear-gradient(135deg, var(--accent) 0%, #8b6bff 100%); }
+  .song-bar-play:hover { filter: brightness(1.08); }
+  .song-bar-next { width: 26px; height: 26px; font-size: 12px; background: var(--panel); color: var(--muted); }
+  .song-bar-next:hover { color: var(--accent); }
+  .song-bar-stop { width: 26px; height: 26px; font-size: 12px; background: var(--panel); color: var(--muted); }
+  .song-bar-stop:hover { color: var(--danger); background: color-mix(in srgb, var(--danger) 14%, transparent); }
+  .song-bar-info { min-width: 0; }
+  .song-bar-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--muted); }
+  .song-bar-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .song-bar.playing .song-bar-play { animation: songPulse 1.6s ease-in-out infinite; }
+  @keyframes songPulse { 0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); } 50% { box-shadow: 0 0 0 6px transparent; } }
+
+  /* Set-song modal (playlist of up to 5) */
+  .song-modal-card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); width: min(460px, 100%); padding: 18px 20px 20px; }
+  .song-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .song-list:empty { display: none; }
+  .song-item { display: flex; align-items: center; gap: 11px; padding: 8px; border-radius: 12px; background: var(--panel-2); border: 1px solid var(--line); }
+  .song-item img { width: 58px; height: 44px; object-fit: cover; border-radius: 8px; flex: none; background: var(--line); cursor: pointer; }
+  .song-item-meta { flex: 1; min-width: 0; }
+  .song-item-idx { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; font-weight: 700; }
+  .song-item-meta a { font-size: 12.5px; color: var(--accent); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+  .song-item-meta a:hover { text-decoration: underline; }
+  .song-item-play { flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--accent); border: none; color: #fff; font-size: 11px; cursor: pointer; display: grid; place-items: center; }
+  .song-item-play:hover { filter: brightness(1.06); }
+  .song-item-remove { flex: none; background: transparent; border: none; color: var(--muted); font-size: 15px; cursor: pointer; padding: 4px 6px; border-radius: 8px; line-height: 1; }
+  .song-item-remove:hover { color: var(--danger); }
+  .song-field-label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .song-count { color: var(--muted); font-weight: 600; }
+  .song-add-row { display: flex; gap: 8px; }
+  #songInput { flex: 1; min-width: 0; padding: 11px 13px; border-radius: 11px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 14px; font-family: inherit; outline: none; box-sizing: border-box; transition: .15s; }
+  #songInput:focus { border-color: var(--accent); background: var(--panel); }
+  #songInput:disabled { opacity: .5; }
+  .song-err { color: var(--danger); font-size: 12px; min-height: 0; margin-top: 6px; }
+  .song-save { flex: none; padding: 9px 18px; border-radius: 11px; border: none; cursor: pointer; background: var(--accent); color: #fff; font-size: 13.5px; font-weight: 650; font-family: inherit; }
+  .song-save:hover { filter: brightness(1.06); }
+  .song-save:disabled { opacity: .5; cursor: default; }
+  .song-help { font-size: 11.5px; color: var(--muted); line-height: 1.5; margin: 12px 0 0; }
 
   .progress-wrap { padding: 12px 20px 6px; }
   .progress-bar { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; border: none; }
@@ -651,6 +703,15 @@
         <p id="tagline">Goals for your day, month, year — and any moment in between</p>
       </div>
     </div>
+    <div class="song-bar" id="songBar" style="display:none">
+      <button class="song-bar-play" id="songBarPlay" title="Play / pause">▶</button>
+      <div class="song-bar-info">
+        <div class="song-bar-eyebrow">♪ Song of the day</div>
+        <div class="song-bar-title" id="songBarTitle">Loading…</div>
+      </div>
+      <button class="song-bar-next" id="songBarNext" title="Next song" style="display:none">⏭</button>
+      <button class="song-bar-stop" id="songBarStop" title="Stop">✕</button>
+    </div>
     <div class="top-actions">
       <div class="sync-badge" id="syncBadge" style="display:none"><span class="dot"></span><span id="syncText">Saved</span></div>
       <button class="icon-btn" id="notesBtn" title="Notes &amp; Reminders">🗒️</button>
@@ -749,6 +810,7 @@
         <div class="scope-title-row">
           <h2 id="scopeTitle">Today</h2>
           <button class="bookmark-btn" id="bookmarkBtn" title="Bookmark this day" style="display:none">★</button>
+          <button class="song-btn" id="songBtn" title="Song for this day" style="display:none">🎵</button>
         </div>
       </div>
 
@@ -867,6 +929,27 @@
   </div>
 </div>
 
+<!-- Song of the day: hidden YouTube audio host (now-playing bar lives in the header) -->
+<div id="ytHost" aria-hidden="true"></div>
+
+<!-- Set song for the day -->
+<div class="modal-overlay" id="songModal">
+  <div class="song-modal-card">
+    <div class="journal-modal-head">
+      <span id="songModalTitle">🎵 Song for this day</span>
+      <button class="journal-modal-close" id="songModalClose" title="Close">✕</button>
+    </div>
+    <div class="song-list" id="songList"></div>
+    <label class="song-field-label" for="songInput">Add a YouTube link <span id="songCount" class="song-count"></span></label>
+    <div class="song-add-row">
+      <input type="text" id="songInput" placeholder="https://www.youtube.com/watch?v=…" />
+      <button class="song-save" id="songSave" type="button">Add</button>
+    </div>
+    <div class="song-err" id="songErr"></div>
+    <p class="song-help">Songs play in order and loop when you open Kairos on this day (your browser may need one click first). Up to 5 per day.</p>
+  </div>
+</div>
+
 <!-- Self notes -->
 <div class="modal-overlay journal-modal" id="notesModal">
   <div class="journal-modal-card">
@@ -973,7 +1056,7 @@
   }
   function saveSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }
 
-  function emptyData() { return { daily: {}, monthly: {}, yearly: {}, custom: [], journal: { daily: {}, monthly: {}, yearly: {} }, notes: "", photos: {}, audioBlobs: {}, bookmarks: {} }; }
+  function emptyData() { return { daily: {}, monthly: {}, yearly: {}, custom: [], journal: { daily: {}, monthly: {}, yearly: {} }, notes: "", photos: {}, audioBlobs: {}, songs: {}, bookmarks: {} }; }
   function normalize(raw) {
     let d = emptyData();
     if (raw && typeof raw === "object") d = Object.assign(d, raw);
@@ -987,6 +1070,14 @@
     if (!d.journal.yearly) d.journal.yearly = {};
     if (typeof d.notes !== "string") d.notes = "";     // personal scratchpad (self notes)
     if (!d.audioBlobs || typeof d.audioBlobs !== "object") d.audioBlobs = {};   // voice-note audio, keyed by chip id
+    if (!d.songs || typeof d.songs !== "object") d.songs = {};                  // per-day YouTube songs, { "YYYY-MM-DD": [videoId, …] }
+    Object.keys(d.songs).forEach(k => {                                          // migrate legacy single-id string → array; cap 5
+      let v = d.songs[k];
+      if (typeof v === "string") v = [v];
+      if (!Array.isArray(v)) { delete d.songs[k]; return; }
+      v = v.filter(x => typeof x === "string" && /^[A-Za-z0-9_-]{11}$/.test(x)).slice(0, 5);
+      if (v.length) d.songs[k] = v; else delete d.songs[k];
+    });
     if (!d.photos || typeof d.photos !== "object") d.photos = {};   // per-day posted images { "YYYY-MM-DD": [{id,url}] }
     if (!d.bookmarks || typeof d.bookmarks !== "object") d.bookmarks = {};
     return d;
@@ -1153,6 +1244,7 @@
     } else {
       bookmarkBtn.style.display = "none";
     }
+    updateSongBtn();
   }
 
   // ---------- Goals render ----------
@@ -1523,6 +1615,7 @@
     if (e.key !== "Escape") return;
     if (journalModal.classList.contains("show")) closeJournalModal();
     if (notesModal.classList.contains("show")) closeNotesModal();
+    if (typeof songModal !== "undefined" && songModal.classList.contains("show")) closeSongModal();
     if (imgLightbox.classList.contains("show")) closeLightbox();
     if (photoModal.classList.contains("show")) photoModal.classList.remove("show");
   });
@@ -1546,6 +1639,191 @@
   notesModal.addEventListener("click", (e) => { if (e.target === notesModal) closeNotesModal(); });
   attachRichEditor(notesArea, commitNotes);
   notesVoiceBtn.addEventListener("click", () => vnStartRecording(notesArea, notesVoiceBtn, commitNotes));
+
+  // ============================================================
+  //  Song of the day (YouTube)
+  // ============================================================
+  const songBtn = document.getElementById("songBtn");
+  const songModal = document.getElementById("songModal");
+  const songModalClose = document.getElementById("songModalClose");
+  const songModalTitle = document.getElementById("songModalTitle");
+  const songInput = document.getElementById("songInput");
+  const songErr = document.getElementById("songErr");
+  const songSave = document.getElementById("songSave");
+  const songListEl = document.getElementById("songList");
+  const songCount = document.getElementById("songCount");
+  const songBar = document.getElementById("songBar");
+  const songBarPlay = document.getElementById("songBarPlay");
+  const songBarNext = document.getElementById("songBarNext");
+  const songBarStop = document.getElementById("songBarStop");
+  const songBarTitle = document.getElementById("songBarTitle");
+  const MAX_SONGS = 5;
+
+  let ytPlayer = null, ytReady = false, ytLoading = false, ytReadyCbs = [];
+  let songStoppedThisSession = false, autoPlayedThisSession = false, pendingPlay = null;
+
+  function songs() { if (!data.songs) data.songs = {}; return data.songs; }
+  function songListFor(key) { const s = songs(); if (!Array.isArray(s[key])) s[key] = []; return s[key]; }
+  function ytIdFromUrl(url) {
+    url = String(url || "").trim();
+    const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|v\/|live\/))([A-Za-z0-9_-]{11})/);
+    if (m) return m[1];
+    return /^[A-Za-z0-9_-]{11}$/.test(url) ? url : null;
+  }
+  function updateSongBtn() {
+    if (scope === "daily" && !readOnly) {
+      songBtn.style.display = "";
+      const n = (songs()[dayKey(selectedDate)] || []).length;
+      songBtn.classList.toggle("on", n > 0);
+      songBtn.title = n ? (n + " song" + (n > 1 ? "s" : "") + " for this day") : "Add songs for this day";
+    } else {
+      songBtn.style.display = "none";
+    }
+  }
+
+  // ---- YouTube IFrame API ----
+  function loadYouTubeApi(cb) {
+    if (ytReady) return cb();
+    ytReadyCbs.push(cb);
+    if (ytLoading) return;
+    ytLoading = true;
+    window.onYouTubeIframeAPIReady = () => { ytReady = true; ytReadyCbs.forEach(f => f()); ytReadyCbs = []; };
+    const s = document.createElement("script"); s.src = "https://www.youtube.com/iframe_api"; document.head.appendChild(s);
+  }
+  // Play the day's songs as a looping playlist, starting at `index`.
+  function playDaySongs(key, index) {
+    const list = (songs()[key] || []).slice(0, MAX_SONGS);
+    if (!list.length) return;
+    songStoppedThisSession = false;
+    pendingPlay = { list: list.slice(), index: Math.max(0, Math.min(index || 0, list.length - 1)) };
+    loadYouTubeApi(() => {
+      showSongBar();
+      if (!ytPlayer) {
+        ytPlayer = new YT.Player("ytHost", {
+          height: "120", width: "200",
+          playerVars: { playsinline: 1, rel: 0 },
+          events: { onReady: startPending, onStateChange: onYtStateChange }
+        });
+      } else {
+        startPending();
+      }
+    });
+  }
+  function startPending() {
+    if (!pendingPlay || !ytPlayer) return;
+    const { list, index } = pendingPlay; pendingPlay = null;
+    try { ytPlayer.loadPlaylist({ playlist: list, index: index }); ytPlayer.setLoop(true); } catch (e) {}
+    songBarNext.style.display = list.length > 1 ? "" : "none";
+    armAutoplayFallback();
+    setTimeout(refreshSongBar, 400);
+  }
+  // If the browser blocks unmuted autoplay, start on the first user gesture.
+  function armAutoplayFallback() {
+    setTimeout(() => {
+      if (!ytPlayer || songStoppedThisSession) return;
+      const st = ytPlayer.getPlayerState && ytPlayer.getPlayerState();
+      if (st === 1 /*playing*/ || st === 3 /*buffering*/) return;
+      const go = () => { if (ytPlayer && !songStoppedThisSession) ytPlayer.playVideo(); };
+      window.addEventListener("pointerdown", go, { once: true });
+      window.addEventListener("keydown", go, { once: true });
+    }, 900);
+  }
+  function onYtStateChange(e) {
+    // 0 = ended: setLoop handles the playlist, but restart from the top as a safety.
+    if (e.data === 0 && !songStoppedThisSession && ytPlayer) {
+      try { ytPlayer.playVideoAt(0); } catch (err) {}
+    }
+    refreshSongBar();
+  }
+  function showSongBar() { songBar.style.display = "flex"; refreshSongBar(); }
+  function hideSongBar() { songBar.style.display = "none"; songBar.classList.remove("playing"); }
+  function refreshSongBar() {
+    if (!ytPlayer || !ytPlayer.getPlayerState) return;
+    const st = ytPlayer.getPlayerState();
+    const playing = st === 1;
+    songBarPlay.textContent = playing ? "⏸" : "▶";
+    songBar.classList.toggle("playing", playing);
+    try { const vd = ytPlayer.getVideoData(); if (vd && vd.title) songBarTitle.textContent = vd.title; } catch (e) {}
+  }
+  function stopSong() {
+    songStoppedThisSession = true;
+    if (ytPlayer) { try { ytPlayer.stopVideo(); } catch (e) {} }
+    hideSongBar();
+  }
+  songBarStop.addEventListener("click", stopSong);
+  songBarPlay.addEventListener("click", () => {
+    if (!ytPlayer) return;
+    const st = ytPlayer.getPlayerState();
+    if (st === 1) ytPlayer.pauseVideo(); else ytPlayer.playVideo();
+    setTimeout(refreshSongBar, 120);
+  });
+  songBarNext.addEventListener("click", () => {
+    if (!ytPlayer) return;
+    try { ytPlayer.nextVideo(); } catch (e) {}
+    setTimeout(refreshSongBar, 300);
+  });
+
+  // Auto-play today's songs when the app opens (once per session, unless stopped).
+  function maybeAutoPlaySong() {
+    if (autoPlayedThisSession || songStoppedThisSession || readOnly) return;
+    const list = songs()[dayKey(now)];
+    if (list && list.length) { autoPlayedThisSession = true; playDaySongs(dayKey(now), 0); }
+  }
+
+  // ---- Set-songs modal (playlist of up to 5) ----
+  function renderSongList() {
+    const key = dayKey(selectedDate);
+    const list = songListFor(key);
+    songListEl.innerHTML = "";
+    list.forEach((id, i) => {
+      const item = document.createElement("div"); item.className = "song-item";
+      const img = document.createElement("img");
+      img.src = "https://img.youtube.com/vi/" + id + "/mqdefault.jpg"; img.alt = ""; img.title = "Play from here";
+      img.addEventListener("click", () => { playDaySongs(key, i); closeSongModal(); });
+      const meta = document.createElement("div"); meta.className = "song-item-meta";
+      const idx = document.createElement("div"); idx.className = "song-item-idx"; idx.textContent = "Song " + (i + 1);
+      const link = document.createElement("a"); link.href = "https://www.youtube.com/watch?v=" + id; link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = "Open on YouTube ↗";
+      meta.appendChild(idx); meta.appendChild(link);
+      const play = document.createElement("button"); play.className = "song-item-play"; play.type = "button"; play.title = "Play from here"; play.textContent = "▶";
+      play.addEventListener("click", () => { playDaySongs(key, i); closeSongModal(); });
+      const rm = document.createElement("button"); rm.className = "song-item-remove"; rm.type = "button"; rm.title = "Remove"; rm.innerHTML = "✕";
+      rm.addEventListener("click", () => {
+        list.splice(i, 1); save(); updateSongBtn(); renderSongList();
+        if (dayKey(now) === key && !list.length) stopSong();
+      });
+      item.appendChild(img); item.appendChild(meta); item.appendChild(play); item.appendChild(rm);
+      songListEl.appendChild(item);
+    });
+    const atMax = list.length >= MAX_SONGS;
+    songCount.textContent = "(" + list.length + "/" + MAX_SONGS + ")";
+    songInput.disabled = atMax; songSave.disabled = atMax;
+    songInput.placeholder = atMax ? "Max 5 — remove one to add another" : "https://www.youtube.com/watch?v=…";
+  }
+  function openSongModal() {
+    songErr.textContent = ""; songInput.value = "";
+    songModalTitle.textContent = "🎵 Songs for " + scopeHeading();
+    renderSongList();
+    songModal.classList.add("show");
+    if (!songInput.disabled) songInput.focus();
+  }
+  function closeSongModal() { songModal.classList.remove("show"); }
+  songBtn.addEventListener("click", openSongModal);
+  songModalClose.addEventListener("click", closeSongModal);
+  songModal.addEventListener("click", (e) => { if (e.target === songModal) closeSongModal(); });
+  function addSong() {
+    const key = dayKey(selectedDate);
+    const list = songListFor(key);
+    if (list.length >= MAX_SONGS) { songErr.textContent = "You can add up to 5 songs per day."; return; }
+    const id = ytIdFromUrl(songInput.value);
+    if (!id) { songErr.textContent = "Please paste a valid YouTube link."; return; }
+    if (list.includes(id)) { songErr.textContent = "That song is already in the list."; return; }
+    list.push(id); save();
+    updateSongBtn(); renderSongList();
+    songInput.value = ""; songErr.textContent = "";
+    if (!songInput.disabled) songInput.focus();
+  }
+  songSave.addEventListener("click", addSong);
+  songInput.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); addSong(); } });
 
   // ---------- Time elapsed / left in the current day / month / year ----------
   function fmtHM(ms) {
@@ -2278,6 +2556,7 @@
     }
     localStorage.setItem(cacheKey, JSON.stringify(data));
     renderAll();
+    maybeAutoPlaySong();
   }
 
   // --- session UI ---
@@ -2449,6 +2728,7 @@
     hideGate();
     showGuest();
     renderAll();
+    maybeAutoPlaySong();
   }
 
   function signOut() {
@@ -2456,6 +2736,7 @@
     localStorage.removeItem(JWT_KEY);
     localStorage.removeItem(MODE_KEY);
     cacheKey = STORE_KEY;
+    stopSong(); autoPlayedThisSession = false; songStoppedThisSession = false;   // let the next account autoplay its own
     if (window.google && google.accounts && google.accounts.id) {
       try { google.accounts.id.disableAutoSelect(); } catch (e) {}
     }
