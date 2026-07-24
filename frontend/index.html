@@ -362,22 +362,59 @@
   .journal-head { font-size: 11.5px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
   .journal-expand { background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 2px 6px; border-radius: 6px; text-transform: none; letter-spacing: 0; }
   .journal-expand:hover { color: var(--accent); background: var(--panel-2); }
-  .journal-area { width: 100%; resize: none; height: 96px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 14px; line-height: 1.55; font-family: inherit; outline: none; transition: .15s; box-sizing: border-box; }
+  .journal-area { width: 100%; height: 96px; overflow-y: auto; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 14px; line-height: 1.55; font-family: inherit; outline: none; transition: .15s; box-sizing: border-box; }
   .journal-area:focus { border-color: var(--accent); background: var(--panel); }
+
+  /* Rich (contenteditable) editors: wrap text, break long words, show a placeholder when empty */
+  .rich { white-space: pre-wrap; word-break: break-word; }
+  .rich.rich-empty::before { content: attr(data-ph); color: var(--muted); pointer-events: none; }
 
   /* Full-page journal */
   .journal-modal.show { display: flex; }
-  .journal-modal-card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); width: min(920px, 100%); height: min(82vh, 100%); display: flex; flex-direction: column; padding: 18px 20px 20px; }
+  .journal-modal-card { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); width: min(920px, 100%); height: min(82vh, 100%); display: flex; flex-direction: column; padding: 18px 20px 20px; }
   .journal-modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
   .journal-modal-head span { font-size: 15px; font-weight: 650; }
   .journal-modal-close { background: transparent; border: none; color: var(--muted); font-size: 18px; cursor: pointer; padding: 2px 6px; border-radius: 6px; }
   .journal-modal-close:hover { color: var(--text); background: var(--panel-2); }
-  #journalModalArea, #notesArea { flex: 1; min-height: 0; resize: none; width: 100%; padding: 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 15.5px; line-height: 1.65; font-family: inherit; outline: none; box-sizing: border-box; }
+  #journalModalArea, #notesArea { flex: 1; min-height: 0; overflow-y: auto; width: 100%; padding: 16px 16px 64px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 15.5px; line-height: 1.65; font-family: inherit; outline: none; box-sizing: border-box; }
   #journalModalArea:focus, #notesArea:focus { border-color: var(--accent); background: var(--panel); }
+
+  /* Voice-note "Add" button (bottom-right of the expanded editor) */
+  .jm-fab {
+    position: absolute; right: 26px; bottom: 26px; display: inline-flex; align-items: center; gap: 8px;
+    height: 42px; padding: 0 16px; border-radius: 999px; border: none; cursor: pointer;
+    background: linear-gradient(135deg, var(--accent) 0%, #8b6bff 100%); color: #fff; font-size: 13px; font-weight: 650; font-family: inherit;
+    box-shadow: 0 8px 22px -6px color-mix(in srgb, var(--accent) 60%, transparent); transition: transform .15s ease, background .15s ease;
+  }
+  .jm-fab:hover { transform: translateY(-1px); }
+  .jm-fab:active { transform: translateY(0) scale(.97); }
+  .jm-fab .jm-ico { font-size: 15px; line-height: 1; }
+  .jm-fab.recording { background: var(--danger); }
+  .jm-fab.recording .jm-ico { animation: recPulse 1s ease-in-out infinite; }
+  @keyframes recPulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+  body.readonly .jm-fab { display: none !important; }
+
+  /* Inline voice-note chip embedded in the text */
+  .vn-chip {
+    display: inline-flex; align-items: center; gap: 6px; vertical-align: middle;
+    padding: 3px 10px 3px 4px; margin: 1px 2px; border-radius: 999px; user-select: none;
+    background: var(--panel); border: 1px solid var(--line); font-size: 12.5px; color: var(--text);
+    box-shadow: 0 1px 2px rgba(16,18,27,.08); cursor: grab; -webkit-user-drag: element;
+  }
+  .vn-chip:hover { border-color: var(--accent); }
+  .vn-chip.playing { border-color: var(--accent); box-shadow: 0 2px 10px -3px var(--accent); }
+  .vn-chip.dragging { opacity: .45; }
+  .vn-chip .vn-play {
+    flex: none; width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer; padding: 0;
+    display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, var(--accent) 0%, #8b6bff 100%);
+  }
+  .vn-chip .vn-play svg { width: 10px; height: 10px; display: block; }
+  .vn-chip .vn-dur { font-variant-numeric: tabular-nums; font-weight: 600; }
+
   .tl-journal-head { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; font-size: 10.5px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--muted); }
   .tl-journal-expand { background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 13px; padding: 1px 5px; border-radius: 6px; }
   .tl-journal-expand:hover { color: var(--accent); background: var(--panel); }
-  .tl-journal { width: 100%; resize: vertical; min-height: 60px; margin-top: 6px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font-size: 13.5px; line-height: 1.5; font-family: inherit; outline: none; box-sizing: border-box; }
+  .tl-journal { width: 100%; min-height: 60px; max-height: 160px; overflow-y: auto; margin-top: 6px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font-size: 13.5px; line-height: 1.5; font-family: inherit; outline: none; box-sizing: border-box; }
   .tl-journal:focus { border-color: var(--accent); }
 
   /* Custom timelines */
@@ -741,7 +778,7 @@
         </div>
         <div class="journal-wrap">
           <div class="journal-head"><span>📓 Journal</span><button class="journal-expand" id="journalExpand" title="Open full-page">⤢</button></div>
-          <textarea class="journal-area" id="journalArea" placeholder="Write about your day…"></textarea>
+          <div class="journal-area rich" id="journalArea" contenteditable="true" data-ph="Write about your day…"></div>
         </div>
       </div>
 
@@ -837,7 +874,8 @@
       <span>🗒️ Notes &amp; Reminders</span>
       <button class="journal-modal-close" id="notesModalClose" title="Close">✕</button>
     </div>
-    <textarea id="notesArea" placeholder="Write your notes and reminders here…"></textarea>
+    <div id="notesArea" class="rich" contenteditable="true" data-ph="Write your notes and reminders here…"></div>
+    <button class="jm-fab" id="notesVoiceBtn" type="button" title="Add a voice note"><span class="jm-ico">🎙</span><span class="jm-label">Voice note</span></button>
   </div>
 </div>
 
@@ -848,7 +886,8 @@
       <span id="journalModalTitle">Journal</span>
       <button class="journal-modal-close" id="journalModalClose" title="Close">✕</button>
     </div>
-    <textarea id="journalModalArea" placeholder="Write…"></textarea>
+    <div id="journalModalArea" class="rich" contenteditable="true" data-ph="Write…"></div>
+    <button class="jm-fab" id="journalVoiceBtn" type="button" title="Add a voice note"><span class="jm-ico">🎙</span><span class="jm-label">Voice note</span></button>
   </div>
 </div>
 
@@ -934,7 +973,7 @@
   }
   function saveSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }
 
-  function emptyData() { return { daily: {}, monthly: {}, yearly: {}, custom: [], journal: { daily: {}, monthly: {}, yearly: {} }, notes: "", photos: {}, bookmarks: {} }; }
+  function emptyData() { return { daily: {}, monthly: {}, yearly: {}, custom: [], journal: { daily: {}, monthly: {}, yearly: {} }, notes: "", photos: {}, audioBlobs: {}, bookmarks: {} }; }
   function normalize(raw) {
     let d = emptyData();
     if (raw && typeof raw === "object") d = Object.assign(d, raw);
@@ -947,6 +986,7 @@
     if (!d.journal.monthly) d.journal.monthly = {};
     if (!d.journal.yearly) d.journal.yearly = {};
     if (typeof d.notes !== "string") d.notes = "";     // personal scratchpad (self notes)
+    if (!d.audioBlobs || typeof d.audioBlobs !== "object") d.audioBlobs = {};   // voice-note audio, keyed by chip id
     if (!d.photos || typeof d.photos !== "object") d.photos = {};   // per-day posted images { "YYYY-MM-DD": [{id,url}] }
     if (!d.bookmarks || typeof d.bookmarks !== "object") d.bookmarks = {};
     return d;
@@ -960,10 +1000,26 @@
   }
   let cacheKey = STORE_KEY;                      // becomes "kairos_data_<userId>" after sign-in
   function save() {
+    gcAudioBlobs();                              // drop voice-note audio no longer referenced anywhere
     localStorage.setItem(cacheKey, JSON.stringify(data));
     scheduleServerPush();                        // hoisted; no-op until signed in
   }
   function uid() { return Date.now() + "" + Math.random().toString(36).slice(2, 6); }
+
+  // Remove audio blobs whose chip (data-id) is no longer present in any journal/notes text.
+  function gcAudioBlobs() {
+    if (!data || !data.audioBlobs) return;
+    const refs = new Set();
+    const scan = (html) => {
+      if (typeof html !== "string") return;
+      const re = /data-id="(vn_[^"]+)"/g; let m;
+      while ((m = re.exec(html))) refs.add(m[1]);
+    };
+    ["daily", "monthly", "yearly"].forEach(s => { const b = (data.journal && data.journal[s]) || {}; Object.values(b).forEach(scan); });
+    scan(data.notes);
+    (data.custom || []).forEach(tl => scan(tl && tl.journal));
+    Object.keys(data.audioBlobs).forEach(id => { if (!refs.has(id)) delete data.audioBlobs[id]; });
+  }
 
   // ---------- Keys ----------
   const pad = n => String(n).padStart(2, "0");
@@ -1201,21 +1257,224 @@
     renderJournal();
   }
 
+  // ============================================================
+  //  Rich journal/notes editor with inline, movable voice notes
+  // ============================================================
+  const VN_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v13.72a.5.5 0 0 0 .77.42l10.5-6.86a.5.5 0 0 0 0-.84L8.77 4.72A.5.5 0 0 0 8 5.14z"/></svg>';
+  const VN_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg>';
+
+  function vnFmt(ms) { const s = Math.max(0, Math.round(ms / 1000)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }
+  function vnEscape(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function vnLooksHtml(s) { return /<[a-z!\/][\s\S]*>/i.test(s); }
+  function vnBlobs() { if (!data.audioBlobs) data.audioBlobs = {}; return data.audioBlobs; }
+
+  function vnChipHtml(id, durMs) {
+    return '<span class="vn-chip" contenteditable="false" draggable="true" data-id="' + id + '" data-dur="' + (durMs || 0) + '">'
+      + '<button class="vn-play" type="button" contenteditable="false" tabindex="-1">' + VN_PLAY + '</button>'
+      + '<span class="vn-dur">' + vnFmt(durMs || 0) + '</span></span>';
+  }
+
+  // Load stored content into an editor (migrating legacy plain text), then wire chips.
+  function setRich(el, stored) {
+    stored = stored || "";
+    el.innerHTML = vnLooksHtml(stored) ? stored : vnEscape(stored).replace(/\n/g, "<br>");
+    hydrateEditor(el);
+    updatePlaceholder(el);
+  }
+  function getRich(el) {
+    if (el.textContent.trim() === "" && !el.querySelector(".vn-chip")) return "";
+    return el.innerHTML;
+  }
+  function updatePlaceholder(el) {
+    el.classList.toggle("rich-empty", el.textContent.trim() === "" && !el.querySelector(".vn-chip"));
+  }
+
+  // ---- playback (one clip at a time) ----
+  let vnCurrent = null;                            // { id, audio, btn, chip }
+  function vnStop() {
+    if (!vnCurrent) return;
+    try { vnCurrent.audio.pause(); } catch (e) {}
+    if (vnCurrent.btn) vnCurrent.btn.innerHTML = VN_PLAY;
+    if (vnCurrent.chip) vnCurrent.chip.classList.remove("playing");
+    vnCurrent = null;
+  }
+  function vnToggle(chip, id, btn) {
+    const url = vnBlobs()[id];
+    if (!url) return;
+    if (vnCurrent && vnCurrent.id === id && !vnCurrent.audio.paused) { vnStop(); return; }
+    vnStop();
+    const audio = new Audio(url);
+    vnCurrent = { id, audio, btn, chip };
+    btn.innerHTML = VN_PAUSE; chip.classList.add("playing");
+    audio.addEventListener("ended", () => { if (vnCurrent && vnCurrent.id === id) vnStop(); });
+    audio.play().catch(() => vnStop());
+  }
+  let vnDragEl = null;                             // chip currently being dragged
+  function hydrateEditor(root) {
+    root.querySelectorAll(".vn-chip").forEach(chip => {
+      const btn = chip.querySelector(".vn-play");
+      const durEl = chip.querySelector(".vn-dur");
+      if (durEl && chip.getAttribute("data-dur")) durEl.textContent = vnFmt(+chip.getAttribute("data-dur"));
+      if (btn && !btn._wired) {
+        btn._wired = true;
+        btn.addEventListener("mousedown", e => e.stopPropagation());
+        btn.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); vnToggle(chip, chip.getAttribute("data-id"), btn); });
+      }
+      if (!chip._dnd) {
+        chip._dnd = true;
+        chip.addEventListener("dragstart", (e) => {
+          vnDragEl = chip; vnStop();
+          e.dataTransfer.effectAllowed = "move";
+          try { e.dataTransfer.setData("text/plain", ""); } catch (_) {}   // some browsers need data set
+          setTimeout(() => chip.classList.add("dragging"), 0);
+        });
+        chip.addEventListener("dragend", () => { chip.classList.remove("dragging"); vnDragEl = null; });
+      }
+    });
+  }
+
+  // Resolve a caret Range at (x,y), clamped inside `container`.
+  function caretRangeAt(x, y, container) {
+    let range = null;
+    if (document.caretRangeFromPoint) range = document.caretRangeFromPoint(x, y);
+    else if (document.caretPositionFromPoint) {
+      const p = document.caretPositionFromPoint(x, y);
+      if (p) { range = document.createRange(); range.setStart(p.offsetNode, p.offset); range.collapse(true); }
+    }
+    if (!range || !container.contains(range.startContainer)) {
+      range = document.createRange(); range.selectNodeContents(container); range.collapse(false);
+    }
+    return range;
+  }
+
+  // Append a voice-note chip after all existing text, then place the caret after it.
+  function insertVoiceNote(el, id, durMs) {
+    if (el.textContent && !/\s$/.test(el.textContent)) el.appendChild(document.createTextNode(" "));
+    const tmp = document.createElement("div"); tmp.innerHTML = vnChipHtml(id, durMs);
+    el.appendChild(tmp.firstChild);
+    el.appendChild(document.createTextNode(" "));
+    hydrateEditor(el);
+    updatePlaceholder(el);
+  }
+
+  // Keep only text + our own chips from pasted HTML (prevents arbitrary HTML injection).
+  function sanitizeRich(html) {
+    const tmp = document.createElement("div"); tmp.innerHTML = html;
+    let out = "";
+    (function walk(node) {
+      node.childNodes.forEach(n => {
+        if (n.nodeType === 3) out += vnEscape(n.nodeValue);
+        else if (n.nodeType === 1) {
+          if (n.classList && n.classList.contains("vn-chip")) out += vnChipHtml(n.getAttribute("data-id"), n.getAttribute("data-dur") || 0);
+          else if (n.tagName === "BR") out += "<br>";
+          else { walk(n); if (/^(DIV|P|LI)$/.test(n.tagName)) out += "<br>"; }
+        }
+      });
+    })(tmp);
+    return out;
+  }
+  function handleRichPaste(e, el, commit) {
+    e.preventDefault();
+    const cb = e.clipboardData || window.clipboardData;
+    const html = cb.getData("text/html");
+    if (html && /vn-chip/.test(html)) document.execCommand("insertHTML", false, sanitizeRich(html));
+    else document.execCommand("insertText", false, cb.getData("text/plain") || "");
+    hydrateEditor(el); updatePlaceholder(el); commit();
+  }
+  // Wire an editor's input/paste/drag-drop to persist + keep chips live.
+  function attachRichEditor(el, commit) {
+    el._commit = commit;
+    el.addEventListener("input", () => { updatePlaceholder(el); commit(); });
+    el.addEventListener("paste", (e) => { if (el.isContentEditable) handleRichPaste(e, el, commit); });
+    // Drag-to-move a voice-note chip: accept the drop and relocate the chip to the caret point.
+    el.addEventListener("dragover", (e) => {
+      if (!vnDragEl || !el.isContentEditable) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+    });
+    el.addEventListener("drop", (e) => {
+      if (!vnDragEl || !el.isContentEditable) return;
+      e.preventDefault();
+      const chip = vnDragEl;
+      const fromEditor = chip.closest(".rich");
+      const range = caretRangeAt(e.clientX, e.clientY, el);
+      // Don't drop a chip inside itself; place it at the caret and pad with spaces.
+      if (!chip.contains(range.startContainer)) {
+        range.insertNode(document.createTextNode(" "));
+        range.insertNode(chip);                    // moves the element (a node lives in one place)
+        chip.parentNode.insertBefore(document.createTextNode(" "), chip);
+      }
+      chip.classList.remove("dragging");
+      vnDragEl = null;
+      hydrateEditor(el); updatePlaceholder(el); commit();
+      if (fromEditor && fromEditor !== el) { updatePlaceholder(fromEditor); if (fromEditor._commit) fromEditor._commit(); }
+    });
+  }
+
+  // ---- recording (shared by the modal FABs) ----
+  let vnRecording = null;                          // { recorder, timer, fab }
+  function vnPickMime() {
+    const c = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus", "audio/mp4"];
+    if (window.MediaRecorder && MediaRecorder.isTypeSupported) for (const t of c) if (MediaRecorder.isTypeSupported(t)) return t;
+    return "";
+  }
+  function vnStopRecording() {
+    if (!vnRecording) return;
+    if (vnRecording.timer) clearInterval(vnRecording.timer);
+    const r = vnRecording.recorder;
+    if (r && r.state !== "inactive") r.stop();
+  }
+  function vnStartRecording(editorEl, fab, commit) {
+    if (vnRecording) { vnStopRecording(); return; }        // toggle stop
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+      alert("Voice recording isn't supported in this browser."); return;
+    }
+    const label = fab.querySelector(".jm-label");
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      const mime = vnPickMime();
+      let rec; try { rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined); } catch (e) { rec = new MediaRecorder(stream); }
+      const chunks = []; const startedAt = Date.now();
+      rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+      rec.onstop = () => {
+        stream.getTracks().forEach(t => t.stop());
+        if (vnRecording && vnRecording.timer) clearInterval(vnRecording.timer);
+        vnRecording = null;
+        fab.classList.remove("recording"); if (label) label.textContent = "Voice note";
+        const blob = new Blob(chunks, { type: rec.mimeType || mime || "audio/webm" });
+        const dur = Date.now() - startedAt;
+        const fr = new FileReader();
+        fr.onload = () => {
+          const id = "vn_" + uid();
+          vnBlobs()[id] = fr.result;
+          insertVoiceNote(editorEl, id, dur);
+          commit();
+        };
+        fr.readAsDataURL(blob);
+      };
+      rec.start();
+      fab.classList.add("recording");
+      const tick = () => { if (label) label.textContent = "Stop · " + vnFmt(Date.now() - startedAt); };
+      tick();
+      const timer = setInterval(() => { tick(); if (Date.now() - startedAt >= 5 * 60 * 1000) vnStopRecording(); }, 500);
+      vnRecording = { recorder: rec, timer, fab };
+    }).catch(() => alert("Microphone access was blocked. Allow mic access to record voice notes."));
+  }
+
   // ---------- Journal (day / month / year) ----------
   function renderJournal() {
     if (scope === "custom") return;
     const key = currentBucketKey();
-    journalArea.value = (data.journal[scope] && data.journal[scope][key]) || "";
-    journalArea.readOnly = readOnly;
-    journalArea.placeholder = readOnly ? "No journal entry" : (scope === "daily" ? "Write about your day…"
+    setRich(journalArea, (data.journal[scope] && data.journal[scope][key]) || "");
+    journalArea.contentEditable = readOnly ? "false" : "true";
+    journalArea.setAttribute("data-ph", readOnly ? "No journal entry" : (scope === "daily" ? "Write about your day…"
       : scope === "monthly" ? "Notes and reflections for this month…"
-      : "Reflections and highlights for this year…");
+      : "Reflections and highlights for this year…"));
   }
-  journalArea.addEventListener("input", () => {
+  attachRichEditor(journalArea, () => {
     if (readOnly || scope === "custom") return;
     const key = currentBucketKey();
     if (!data.journal[scope]) data.journal[scope] = {};
-    data.journal[scope][key] = journalArea.value;
+    data.journal[scope][key] = getRich(journalArea);
     save();
   });
 
@@ -1225,40 +1484,41 @@
   const journalModalArea = document.getElementById("journalModalArea");
   const journalModalTitle = document.getElementById("journalModalTitle");
   const journalModalClose = document.getElementById("journalModalClose");
+  const journalVoiceBtn = document.getElementById("journalVoiceBtn");
   let journalModalSource = null;                   // { title, get(), set(v) }
+
+  function commitJournalModal() {
+    if (readOnly || !journalModalSource) return;
+    journalModalSource.set(getRich(journalModalArea));
+    save();
+  }
 
   // exposed so timeline cards can open the same full-page editor
   window.openJournalModalFor = function (source) {
     journalModalSource = source;
     journalModalTitle.textContent = "📓 Journal · " + source.title;
-    journalModalArea.value = source.get();
-    journalModalArea.readOnly = readOnly;
+    setRich(journalModalArea, source.get());
+    journalModalArea.contentEditable = readOnly ? "false" : "true";
+    journalModalArea.setAttribute("data-ph", "Write…");
     journalModal.classList.add("show");
-    journalModalArea.focus();
+    if (!readOnly) journalModalArea.focus();
   };
   function openMainJournalModal() {
     if (scope === "custom") return;
+    const sc = scope, key = currentBucketKey();
     openJournalModalFor({
       title: scopeHeading(),
-      get: () => journalArea.value,
-      set: (v) => {
-        const key = currentBucketKey();
-        if (!data.journal[scope]) data.journal[scope] = {};
-        data.journal[scope][key] = v;
-        journalArea.value = v;
-      }
+      get: () => (data.journal[sc] && data.journal[sc][key]) || "",
+      set: (v) => { if (!data.journal[sc]) data.journal[sc] = {}; data.journal[sc][key] = v; if (sc === scope) setRich(journalArea, v); }
     });
   }
-  function closeJournalModal() { journalModal.classList.remove("show"); journalModalSource = null; }
+  function closeJournalModal() { vnStopRecording(); vnStop(); journalModal.classList.remove("show"); journalModalSource = null; renderAll(); }
 
   journalExpand.addEventListener("click", openMainJournalModal);
   journalModalClose.addEventListener("click", closeJournalModal);
   journalModal.addEventListener("click", (e) => { if (e.target === journalModal) closeJournalModal(); });
-  journalModalArea.addEventListener("input", () => {
-    if (readOnly || !journalModalSource) return;
-    journalModalSource.set(journalModalArea.value);
-    save();
-  });
+  attachRichEditor(journalModalArea, commitJournalModal);
+  journalVoiceBtn.addEventListener("click", () => vnStartRecording(journalModalArea, journalVoiceBtn, commitJournalModal));
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
     if (journalModal.classList.contains("show")) closeJournalModal();
@@ -1272,21 +1532,20 @@
   const notesModal = document.getElementById("notesModal");
   const notesArea = document.getElementById("notesArea");
   const notesModalClose = document.getElementById("notesModalClose");
+  const notesVoiceBtn = document.getElementById("notesVoiceBtn");
+  function commitNotes() { if (readOnly) return; data.notes = getRich(notesArea); save(); }
   function openNotesModal() {
-    notesArea.value = data.notes || "";
-    notesArea.readOnly = readOnly;
+    setRich(notesArea, data.notes || "");
+    notesArea.contentEditable = readOnly ? "false" : "true";
     notesModal.classList.add("show");
-    notesArea.focus();
+    if (!readOnly) notesArea.focus();
   }
-  function closeNotesModal() { notesModal.classList.remove("show"); }
+  function closeNotesModal() { vnStopRecording(); vnStop(); notesModal.classList.remove("show"); }
   notesBtn.addEventListener("click", openNotesModal);
   notesModalClose.addEventListener("click", closeNotesModal);
   notesModal.addEventListener("click", (e) => { if (e.target === notesModal) closeNotesModal(); });
-  notesArea.addEventListener("input", () => {
-    if (readOnly) return;
-    data.notes = notesArea.value;
-    save();
-  });
+  attachRichEditor(notesArea, commitNotes);
+  notesVoiceBtn.addEventListener("click", () => vnStartRecording(notesArea, notesVoiceBtn, commitNotes));
 
   // ---------- Time elapsed / left in the current day / month / year ----------
   function fmtHM(ms) {
@@ -1529,17 +1788,16 @@
     const jLabel = document.createElement("span"); jLabel.textContent = "📓 Journal";
     const jExpand = document.createElement("button"); jExpand.className = "tl-journal-expand"; jExpand.innerHTML = "⤢"; jExpand.title = "Open full-page";
     jHead.appendChild(jLabel); jHead.appendChild(jExpand);
-    const journal = document.createElement("textarea");
-    journal.className = "tl-journal";
-    journal.rows = 3;
-    journal.placeholder = "Journal for this timeline…";
-    journal.value = tl.journal || "";
-    journal.readOnly = readOnly;
-    journal.addEventListener("input", () => { if (readOnly) return; tl.journal = journal.value; save(); });
+    const journal = document.createElement("div");
+    journal.className = "tl-journal rich";
+    journal.setAttribute("data-ph", "Journal for this timeline…");
+    journal.contentEditable = readOnly ? "false" : "true";
+    setRich(journal, tl.journal || "");
+    attachRichEditor(journal, () => { if (readOnly) return; tl.journal = getRich(journal); save(); });
     jExpand.addEventListener("click", () => openJournalModalFor({
       title: tl.title || "Untitled timeline",
       get: () => tl.journal || "",
-      set: (v) => { tl.journal = v; journal.value = v; }
+      set: (v) => { tl.journal = v; setRich(journal, v); }
     }));
     card.appendChild(jHead);
     card.appendChild(journal);
