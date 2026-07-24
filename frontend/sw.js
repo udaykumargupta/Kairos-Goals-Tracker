@@ -28,6 +28,7 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;        // Google/YouTube/fonts → straight to network
   if (url.pathname.startsWith("/api/")) return;           // dynamic + authed → always network
+  if (url.pathname.startsWith("/.well-known/")) return;   // asset links etc. → always fresh, never cached
 
   // Documents: network-first (fresh on every online launch), fall back to cache offline.
   if (req.mode === "navigate") {
