@@ -1,0 +1,16 @@
+{
+  "name": "Kairos — Goals Tracker",
+  "short_name": "Kairos",
+  "description": "Track your goals across day, month, year and any custom timeline — with a journal, voice notes, photos, and a song of the day.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#101116",
+  "theme_color": "#6d5efc",
+  "categories": ["productivity", "lifestyle"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
