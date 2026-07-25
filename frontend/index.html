@@ -15,7 +15,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
 <style>
   :root {
     --bg: #f6f2ec;
@@ -35,6 +35,7 @@
     --shadow: 0 1px 2px rgba(60,40,20,.05), 0 14px 34px -16px rgba(150,90,40,.16);
     --radius: 20px;
     --font-display: "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-wordmark: "Fraunces", Georgia, "Times New Roman", serif;
     --brand-grad: linear-gradient(135deg, #e0a15a 0%, #c2603f 100%);
     --wordmark-color: var(--accent);
   }
@@ -55,9 +56,9 @@
       --won-bg: #16281f;
       --missed-bg: #2c1a1b;
       --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 30px rgba(0,0,0,.35);
-      /* dark keeps the original look */
+      /* dark keeps the original colors/radius, but shares light's display font */
       --radius: 16px;
-      --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-display: "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       --brand-grad: linear-gradient(135deg, var(--accent), var(--accent-2));
       --wordmark-color: var(--text);
     }
@@ -73,7 +74,7 @@
     --bg:#101116;--panel:#191b22;--panel-2:#1f222b;--text:#eceef3;--muted:#9a9eab;--line:#2a2d38;
     --accent:#7c8bff;--accent-soft:#21243a;--accent-2:#35c98f;--danger:#ff6b6f;--today:#2a2410;
     --today-ring:#d9a400;--won-bg:#16281f;--missed-bg:#2c1a1b;--shadow:0 1px 2px rgba(0,0,0,.3),0 12px 30px rgba(0,0,0,.35);
-    --radius:16px; --font-display:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --radius:16px; --font-display:"Space Grotesk",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
     --brand-grad: linear-gradient(135deg, var(--accent), var(--accent-2)); --wordmark-color: var(--text);
   }
 
@@ -110,7 +111,7 @@
     box-shadow: 0 6px 16px -5px color-mix(in srgb, var(--accent) 60%, transparent);
   }
   .brand h1 {
-    font-family: var(--font-display); font-size: 23px; margin: 0; letter-spacing: -.5px; font-weight: 700;
+    font-family: var(--font-wordmark); font-size: 24px; margin: 0; letter-spacing: -.3px; font-weight: 600;
     color: var(--wordmark-color);
   }
   .brand p { margin: 1px 0 0; font-size: 12.5px; color: var(--muted); }
@@ -589,7 +590,7 @@
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
     display: grid; place-items: center; font-size: 32px; box-shadow: var(--shadow);
   }
-  .auth-card h2 { font-family: var(--font-display); margin: 0 0 6px; font-size: 26px; font-weight: 700; letter-spacing: -.6px; color: var(--wordmark-color); }
+  .auth-card h2 { font-family: var(--font-wordmark); margin: 0 0 6px; font-size: 28px; font-weight: 600; letter-spacing: -.4px; color: var(--wordmark-color); }
   .auth-card p { margin: 0 0 26px; color: var(--muted); font-size: 14px; line-height: 1.55; }
   #gsiButton { display: flex; justify-content: center; min-height: 44px; }
   .gsi-missing { color: var(--danger); font-size: 12.5px; line-height: 1.6; border: 1px solid var(--line); border-radius: 12px; padding: 14px; text-align: left; }
@@ -1728,12 +1729,13 @@
     window.onYouTubeIframeAPIReady = () => { ytReady = true; ytReadyCbs.forEach(f => f()); ytReadyCbs = []; };
     const s = document.createElement("script"); s.src = "https://www.youtube.com/iframe_api"; document.head.appendChild(s);
   }
-  // Play the day's songs as a looping playlist, starting at `index`.
-  function playDaySongs(key, index) {
+  // Show the day's songs as a looping playlist, starting at `index`.
+  // autostart=false just loads the bar paused (the default on open); the user presses ▶ to play.
+  function playDaySongs(key, index, autostart) {
     const list = (songs()[key] || []).slice(0, MAX_SONGS);
     if (!list.length) return;
     songStoppedThisSession = false;
-    pendingPlay = { list: list.slice(), index: Math.max(0, Math.min(index || 0, list.length - 1)) };
+    pendingPlay = { list: list.slice(), index: Math.max(0, Math.min(index || 0, list.length - 1)), autostart: autostart !== false };
     loadYouTubeApi(() => {
       showSongBar();
       if (!ytPlayer) {
@@ -1749,10 +1751,15 @@
   }
   function startPending() {
     if (!pendingPlay || !ytPlayer) return;
-    const { list, index } = pendingPlay; pendingPlay = null;
-    try { ytPlayer.loadPlaylist({ playlist: list, index: index }); ytPlayer.setLoop(true); } catch (e) {}
+    const { list, index, autostart } = pendingPlay; pendingPlay = null;
+    try {
+      // cue = load but stay paused; load = start playing. Default on open is paused.
+      if (autostart) ytPlayer.loadPlaylist({ playlist: list, index: index });
+      else ytPlayer.cuePlaylist({ playlist: list, index: index });
+      ytPlayer.setLoop(true);
+    } catch (e) {}
     songBarNext.style.display = list.length > 1 ? "" : "none";
-    armAutoplayFallback();
+    if (autostart) armAutoplayFallback();
     setTimeout(refreshSongBar, 400);
   }
   // If the browser blocks unmuted autoplay, start on the first user gesture.
@@ -1801,11 +1808,25 @@
     setTimeout(refreshSongBar, 300);
   });
 
-  // Auto-play today's songs when the app opens (once per session, unless stopped).
+  // Surface today's songs (paused) when the app opens, once per session unless stopped.
   function maybeAutoPlaySong() {
     if (autoPlayedThisSession || songStoppedThisSession || readOnly) return;
     const list = songs()[dayKey(now)];
-    if (list && list.length) { autoPlayedThisSession = true; playDaySongs(dayKey(now), 0); }
+    if (list && list.length) { autoPlayedThisSession = true; playDaySongs(dayKey(now), 0, false); }
+  }
+  // For a shared read-only link: surface the owner's song-of-the-day (paused) to the viewer.
+  // Prefer today's songs; otherwise fall back to the most recent day (not in the future)
+  // that has songs, so the viewer still sees what the owner set even a day or two later.
+  function maybeAutoPlaySharedSong() {
+    if (autoPlayedThisSession || songStoppedThisSession) return;
+    const s = songs();
+    const today = dayKey(now);
+    let key = (s[today] && s[today].length) ? today : null;
+    if (!key) {
+      const past = Object.keys(s).filter(k => Array.isArray(s[k]) && s[k].length && k <= today).sort();
+      if (past.length) key = past[past.length - 1];
+    }
+    if (key) { autoPlayedThisSession = true; playDaySongs(key, 0, false); }
   }
 
   // ---- Set-songs modal (playlist of up to 5) ----
@@ -3038,6 +3059,7 @@
       shareBanner.textContent = "⚠️ This share link is invalid or has been turned off.";
     }
     renderAll();
+    maybeAutoPlaySharedSong();   // let the viewer hear the owner's song-of-the-day
   }
 
   // Initial paint (empty/local) sits behind the gate until sign-in completes.
