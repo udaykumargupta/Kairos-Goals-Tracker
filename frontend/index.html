@@ -1352,6 +1352,81 @@
 
   const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
+  // ---------- Celebration: confetti + a soft chime when a day clears its threshold ----------
+  function dayCleared(d) { const s = dayStats(d); return s.total > 0 && s.pct >= settings.threshold; }
+  let celebrating = false;
+  const CELEBRATE_MS = 10000;
+  // A 10s silent celebration: a continuous confetti downpour (ribbons + circles fluttering down the
+  // whole width) with periodic firework bursts (radial glowing sparks). No sound.
+  function celebrate() {
+    if (celebrating) return;                 // one celebration at a time
+    celebrating = true;
+    setTimeout(() => { celebrating = false; }, CELEBRATE_MS + 300);
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;  // accessibility
+    const cs = getComputedStyle(document.documentElement);
+    const colors = [
+      (cs.getPropertyValue("--accent") || "#7c8bff").trim(),
+      (cs.getPropertyValue("--accent-2") || "#35c98f").trim(),
+      "#ffd36e", "#ff8e72", "#c9a7ff", "#ff5da2", "#ffffff"
+    ];
+    const canvas = document.createElement("canvas");
+    canvas.style.cssText = "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9999";
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext("2d");
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const W = canvas.width = window.innerWidth * dpr, H = canvas.height = window.innerHeight * dpr;
+    const rand = (a, b) => a + Math.random() * (b - a);
+    const pick = () => colors[(Math.random() * colors.length) | 0];
+    const parts = [];
+    function rainDrop() {                    // confetti falling from just above the top edge
+      parts.push({
+        kind: "c", x: rand(0, W), y: -20 * dpr, vx: rand(-1, 1) * dpr, vy: rand(2.2, 5) * dpr,
+        size: rand(6, 12) * dpr, color: pick(), ribbon: Math.random() < 0.7,
+        rot: rand(0, 6.28), vr: rand(-0.2, 0.2), wob: rand(0, 6.28), wobV: rand(0.08, 0.2)
+      });
+    }
+    function firework() {                    // a radial burst of glowing sparks (one colour per burst)
+      const cx = rand(0.15, 0.85) * W, cy = rand(0.12, 0.5) * H, color = pick(), n = 54;
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * 6.283 + rand(-0.06, 0.06), sp = rand(3, 9) * dpr;
+        parts.push({ kind: "s", x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+          size: rand(2, 4) * dpr, color, born: performance.now(), ttl: rand(900, 1300) });
+      }
+    }
+    // Immediate impact: pre-fill the screen with mid-fall confetti + two opening fireworks,
+    // so the moment lands the instant a day is cleared (not only after frames accumulate).
+    for (let k = 0; k < 80; k++) { rainDrop(); parts[parts.length - 1].y = rand(-0.1, 1) * H; }
+    firework(); firework();
+    const start = performance.now();
+    let lastRain = 0, nextFire = 500;
+    (function frame() {
+      const now = performance.now(), e = now - start;
+      if (e < CELEBRATE_MS - 400 && now - lastRain > 55) { for (let k = 0; k < 6; k++) rainDrop(); lastRain = now; }
+      if (e < CELEBRATE_MS - 900 && e > nextFire) { firework(); nextFire = e + rand(450, 800); }
+      ctx.clearRect(0, 0, W, H);
+      for (let i = parts.length - 1; i >= 0; i--) {
+        const p = parts[i];
+        if (p.kind === "c") {
+          p.wob += p.wobV; p.vy += 0.03 * dpr; p.x += p.vx + Math.sin(p.wob) * 1.2 * dpr; p.y += p.vy; p.rot += p.vr;
+          if (p.y > H + 30 * dpr) { parts.splice(i, 1); continue; }
+          ctx.save(); ctx.globalAlpha = 0.95; ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillStyle = p.color;
+          if (p.ribbon) { ctx.scale(Math.cos(p.wob), 1); ctx.fillRect(-p.size / 2, -p.size * 0.35, p.size, p.size * 0.7); }
+          else { ctx.beginPath(); ctx.arc(0, 0, p.size * 0.45, 0, 6.283); ctx.fill(); }
+          ctx.restore();
+        } else {
+          const age = now - p.born;
+          if (age > p.ttl) { parts.splice(i, 1); continue; }
+          p.vx *= 0.9; p.vy = p.vy * 0.9 + 0.14 * dpr; p.x += p.vx; p.y += p.vy;
+          ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = Math.max(0, 1 - age / p.ttl);
+          ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, 6.283); ctx.fill();
+          ctx.restore();
+        }
+      }
+      if (e < CELEBRATE_MS + 2500 && (parts.length || e < CELEBRATE_MS)) requestAnimationFrame(frame);
+      else canvas.remove();
+    })();
+  }
+
   function renderGoals() {
     updateBookmarkBtn();
     if (scope === "custom") {
@@ -1384,7 +1459,14 @@
         const cb = document.createElement("div");
         cb.className = "checkbox" + (g.done ? " checked" : "");
         cb.innerHTML = CHECK_SVG;
-        cb.addEventListener("click", () => { if (readOnly) return; g.done = !g.done; save(); renderAll(); });
+        cb.addEventListener("click", () => {
+          if (readOnly) return;
+          const wasCleared = scope === "daily" && dayCleared(selectedDate);
+          g.done = !g.done;
+          const nowCleared = scope === "daily" && dayCleared(selectedDate);
+          save(); renderAll();
+          if (!wasCleared && nowCleared) celebrate();          // only on the upward transition
+        });
 
         const txt = document.createElement("div");
         txt.className = "goal-text";
