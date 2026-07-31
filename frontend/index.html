@@ -627,6 +627,24 @@
   .pop-divider { height: 1px; background: var(--line); margin: 12px 0 10px; }
   .pop-danger-btn { width: 100%; padding: 9px; border-radius: 10px; border: 1px solid var(--line); background: transparent; color: var(--danger); font-size: 13px; font-weight: 600; cursor: pointer; transition: .15s; }
   .pop-danger-btn:hover { background: var(--missed-bg); border-color: var(--danger); }
+  /* Progress & streaks */
+  .stats-card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); width: min(560px, 100%); padding: 18px 20px 20px; }
+  .stats-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: 10px; margin: 14px 0 16px; }
+  .stat-tile { background: var(--panel-2); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+  .stat-tile .k { font-size: 10.5px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); font-weight: 700; }
+  .stat-tile .v { font-size: 25px; font-weight: 700; font-family: var(--font-display); margin-top: 4px; letter-spacing: -.5px; line-height: 1; }
+  .stat-tile .v small { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: 0; }
+  .stats-sub { font-size: 12px; color: var(--muted); margin: 2px 0 8px; }
+  .heat-wrap { overflow-x: auto; padding-bottom: 4px; }
+  .heat { display: grid; grid-template-rows: repeat(7, 12px); grid-auto-flow: column; grid-auto-columns: 12px; gap: 3px; width: max-content; }
+  .heat i, .heat-legend i { width: 12px; height: 12px; border-radius: 3px; background: var(--line); display: inline-block; }
+  .heat i.l1, .heat-legend i.l1 { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+  .heat i.l2, .heat-legend i.l2 { background: color-mix(in srgb, var(--accent) 45%, transparent); }
+  .heat i.l3, .heat-legend i.l3 { background: color-mix(in srgb, var(--accent) 70%, transparent); }
+  .heat i.l4, .heat-legend i.l4 { background: var(--accent); }
+  .heat i.future { opacity: .3; }
+  .heat-legend { display: flex; align-items: center; gap: 5px; justify-content: flex-end; margin-top: 9px; font-size: 11px; color: var(--muted); }
+  .stats-empty { text-align: center; color: var(--muted); font-size: 13px; padding: 10px 0 2px; }
   .modal-overlay { position: fixed; inset: 0; z-index: 200; display: none; align-items: center; justify-content: center; padding: 24px; background: rgba(0,0,0,.5); }
   .modal-overlay.show { display: flex; }
   .modal-card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); padding: 24px; max-width: 400px; width: 100%; }
@@ -753,6 +771,7 @@
     </div>
     <div class="top-actions">
       <div class="sync-badge" id="syncBadge" style="display:none"><span class="dot"></span><span id="syncText">Saved</span></div>
+      <button class="icon-btn" id="statsBtn" title="Progress &amp; streaks">📊</button>
       <button class="icon-btn" id="notesBtn" title="Notes &amp; Reminders">🗒️</button>
       <div class="settings-wrap">
         <button class="icon-btn" id="settingsBtn" title="Settings & account">⚙️</button>
@@ -986,6 +1005,21 @@
     </div>
     <div class="song-err" id="songErr"></div>
     <p class="song-help">Songs play in order and loop when you open Kairos on this day (your browser may need one click first). Up to 5 per day.</p>
+  </div>
+</div>
+
+<!-- Progress & streaks -->
+<div class="modal-overlay" id="statsModal">
+  <div class="stats-card">
+    <div class="journal-modal-head">
+      <span>📊 Your progress</span>
+      <button class="journal-modal-close" id="statsModalClose" title="Close">✕</button>
+    </div>
+    <div class="stats-tiles" id="statsTiles"></div>
+    <div class="stats-sub">Daily goal completion — last 26 weeks</div>
+    <div class="heat-wrap"><div class="heat" id="statsHeat"></div></div>
+    <div class="heat-legend">Less <i class="l0"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i><i class="l4"></i> More</div>
+    <div class="stats-empty" id="statsEmpty" style="display:none"></div>
   </div>
 </div>
 
@@ -1654,6 +1688,7 @@
     if (e.key !== "Escape") return;
     if (journalModal.classList.contains("show")) closeJournalModal();
     if (notesModal.classList.contains("show")) closeNotesModal();
+    if (typeof statsModal !== "undefined" && statsModal.classList.contains("show")) closeStatsModal();
     if (typeof songModal !== "undefined" && songModal.classList.contains("show")) closeSongModal();
     if (imgLightbox.classList.contains("show")) closeLightbox();
     if (photoModal.classList.contains("show")) photoModal.classList.remove("show");
@@ -1677,6 +1712,84 @@
   notesModalClose.addEventListener("click", closeNotesModal);
   notesModal.addEventListener("click", (e) => { if (e.target === notesModal) closeNotesModal(); });
   attachRichEditor(notesArea, commitNotes);
+
+  // ---------- Progress & streaks ----------
+  const statsBtn = document.getElementById("statsBtn");
+  const statsModal = document.getElementById("statsModal");
+  const statsModalClose = document.getElementById("statsModalClose");
+  function parseDayKey(k) { const p = k.split("-"); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function midnight(d) { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
+  function wonOn(d) { const s = dayStats(d); return s.total > 0 && s.pct >= settings.threshold; }
+  function currentStreak() {
+    let n = 0; const d = midnight(now);
+    if (!wonOn(d)) d.setDate(d.getDate() - 1);   // a still-in-progress today shouldn't break the streak
+    while (wonOn(d)) { n++; d.setDate(d.getDate() - 1); }
+    return n;
+  }
+  function longestStreak() {
+    const keys = Object.keys(data.daily || {}).filter(k => (data.daily[k] || []).length);
+    if (!keys.length) return 0;
+    keys.sort();
+    let best = 0, run = 0; const end = midnight(now);
+    for (const d = parseDayKey(keys[0]); d <= end; d.setDate(d.getDate() + 1)) {
+      if (wonOn(d)) { run++; if (run > best) best = run; } else run = 0;
+    }
+    return best;
+  }
+  function rateBetween(from, to) {
+    let won = 0, withGoals = 0;
+    for (const d = new Date(from); d <= to; d.setDate(d.getDate() + 1)) {
+      const s = dayStats(d);
+      if (s.total > 0) { withGoals++; if (s.pct >= settings.threshold) won++; }
+    }
+    return { won, withGoals, pct: withGoals ? Math.round(won / withGoals * 100) : 0 };
+  }
+  function heatLevel(s) {
+    if (s.total === 0) return 0;
+    if (s.pct >= settings.threshold) return 4;
+    if (s.pct >= settings.threshold * 0.66) return 3;
+    if (s.pct >= settings.threshold * 0.33) return 2;
+    return 1;
+  }
+  function tile(k, v) { return '<div class="stat-tile"><div class="k">' + k + '</div><div class="v">' + v + '</div></div>'; }
+  function renderStats() {
+    const t = midnight(now);
+    const cur = currentStreak(), best = longestStreak();
+    const wkStart = new Date(t); wkStart.setDate(t.getDate() - t.getDay());
+    const moStart = new Date(t.getFullYear(), t.getMonth(), 1);
+    const wk = rateBetween(wkStart, t), mo = rateBetween(moStart, t);
+    let allWon = 0;
+    Object.keys(data.daily || {}).forEach(k => { if (wonOn(parseDayKey(k))) allWon++; });
+    document.getElementById("statsTiles").innerHTML =
+      tile("Current streak", cur + '<small> day' + (cur === 1 ? '' : 's') + ' 🔥</small>') +
+      tile("Longest streak", best + '<small> day' + (best === 1 ? '' : 's') + '</small>') +
+      tile("This week", wk.pct + '<small>% · ' + wk.won + '/' + wk.withGoals + '</small>') +
+      tile("This month", mo.pct + '<small>% · ' + mo.won + '/' + mo.withGoals + '</small>') +
+      tile("Days won", String(allWon));
+    const heat = document.getElementById("statsHeat");
+    heat.innerHTML = "";
+    const end = new Date(t); end.setDate(t.getDate() + (6 - t.getDay()));   // Saturday of this week
+    const start = new Date(end); start.setDate(end.getDate() - (26 * 7 - 1));
+    for (const d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const cell = document.createElement("i");
+      if (d > t) { cell.className = "future"; }
+      else {
+        const s = dayStats(d);
+        const lv = heatLevel(s);
+        if (lv) cell.className = "l" + lv;
+        cell.title = dayKey(d) + (s.total ? " — " + s.done + "/" + s.total + " done" : " — no goals");
+      }
+      heat.appendChild(cell);
+    }
+    const empty = document.getElementById("statsEmpty");
+    if (allWon === 0 && cur === 0) { empty.style.display = "block"; empty.textContent = "Complete your daily goals to start a streak 🌱"; }
+    else { empty.style.display = "none"; }
+  }
+  function openStatsModal() { renderStats(); statsModal.classList.add("show"); }
+  function closeStatsModal() { statsModal.classList.remove("show"); }
+  statsBtn.addEventListener("click", openStatsModal);
+  statsModalClose.addEventListener("click", closeStatsModal);
+  statsModal.addEventListener("click", (e) => { if (e.target === statsModal) closeStatsModal(); });
   notesVoiceBtn.addEventListener("click", () => vnStartRecording(notesArea, notesVoiceBtn, commitNotes));
 
   // ============================================================
