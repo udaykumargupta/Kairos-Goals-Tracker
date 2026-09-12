@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/udaykumargupta/kairos/internal/kairos"
+	"github.com/udaykumargupta/kairos/kairos"
 )
 
 var (

@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/udaykumargupta/kairos/internal/kairos"
+	"github.com/udaykumargupta/kairos/kairos"
 )
 
 func main() {
