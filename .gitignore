@@ -13,5 +13,13 @@
 backend/target/
 target/
 
+# Go / Vercel build output
+# public/ is generated at deploy time by copying frontend/ (see vercel.json)
+public/
+.vercel/
+# The compiled binary at the repo root only. Must stay anchored with a leading
+# slash: a bare "kairos" would also match the internal/kairos/ package directory.
+/kairos
+
 # Logs
 *.log
