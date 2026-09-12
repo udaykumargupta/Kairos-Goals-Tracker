@@ -13,5 +13,11 @@
 backend/target/
 target/
 
+# Go / Vercel build output
+# public/ is generated at deploy time by copying frontend/ (see vercel.json)
+public/
+kairos
+.vercel/
+
 # Logs
 *.log
